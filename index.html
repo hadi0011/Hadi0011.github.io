@@ -885,12 +885,38 @@
             btn.style.opacity = checkbox.checked ? '1' : '0.5';
             btn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
         }
+async function simulatePayment() {
+    if (!window.Pi) {
+        alert("Please open this app in Pi Browser.");
+        return;
+    }
 
-        function simulatePayment() {
-            alert('Pi Wallet connection simulated for 1 Pi payment.\nYour registration is pending admin approval.');
-            switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
-        }
-
+    try {
+        const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+        
+        Pi.createPayment({
+            amount: 1,
+            memo: "PiTrustee Provider Registration Fee",
+            metadata: { type: "registration" }
+        }, {
+            onReadyForServerApproval: function(paymentId) {
+                console.log("Payment ready for approval:", paymentId);
+            },
+            onReadyForServerCompletion: function(paymentId, txid) {
+                alert("Payment Successful! Your 1 Pi has been sent.\nYour registration is pending admin approval.");
+                switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
+            },
+            onCancel: function(paymentId) {
+                alert("Payment cancelled by user.");
+            },
+            onError: function(error, payment) {
+                alert("Payment error: " + error.message);
+            }
+        });
+    } catch (err) {
+        alert("Authentication failed: " + err.message);
+    }
+}
         // Modal
         function openModal(title, desc, address, phone, website) {
             document.getElementById('modalTitle').innerText = title;
