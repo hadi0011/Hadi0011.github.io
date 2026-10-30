@@ -170,6 +170,7 @@
             <button onclick="switchTab('merchant', event)">Merchant Console</button>
             <button onclick="switchTab('admin', event)">Admin Panel</button>
             <button onclick="switchTab('help', event)">Help</button>
+            <button onclick="loginWithPi()" style="background: #f7c23c; color: #5c2d91; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-left: 10px;">Login with Pi</button>
             <div class="theme-toggle">
                 <button class="theme-btn">⚙️</button>
                 <div class="theme-menu">
@@ -911,6 +912,19 @@
         }
 
         // Chatbot
+        async function loginWithPi() {
+    if (window.Pi) {
+        try {
+            const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+            alert("Welcome, Pioneer: " + auth.user.username);
+        } catch (err) {
+            alert("Login failed: " + err.message);
+        }
+    } else {
+        alert("Please open this app in Pi Browser.");
+    }
+}
+function onIncompletePaymentFound(payment) { console.log(payment); }
         function toggleChat() {
             const w = document.getElementById('chatbotWindow');
             w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
