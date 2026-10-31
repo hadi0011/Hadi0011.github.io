@@ -462,8 +462,7 @@
                         </select>
                     </div>
                 </div>
-
-                                <!-- Section 3: Location & Contact -->
+                <!-- Section 3: Location & Contact -->
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
@@ -480,7 +479,7 @@
                     </div>
                     <div class="form-group">
                         <label>Country</label>
-                        <select id="regCountry">
+                        <select id="regCountry" onchange="fetchCitiesForCountry()">
                             <option value="">Select Country...</option>
                         </select>
                     </div>
@@ -489,7 +488,8 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label>City</label>
-                        <input type="text" id="regCity" placeholder="e.g., New York">
+                        <input type="text" id="regCity" list="cityList" placeholder="Type to search city...">
+                        <datalist id="cityList"></datalist>
                     </div>
                     <div class="form-group">
                         <label>Postal Code</label>
