@@ -1118,16 +1118,14 @@ function onIncompletePaymentFound(payment) { console.log(payment); }
     <script>if(window.Pi){Pi.init({version:"2.0",sandbox:true});}</script>
     <script>
     // --- Standardized Geography Data (UN M49 / ISO 3166-1) ---
-    const standardLocations = {
+        const standardLocations = {
         "North America": ["United States", "Canada", "Mexico"],
+        "South America": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
         "Europe": ["United Kingdom", "Germany", "France", "Spain", "Italy", "Netherlands", "Sweden", "Switzerland"],
-        "MENA": ["United Arab Emirates", "Saudi Arabia", "Egypt", "Turkey", "Iran", "Iraq", "Israel"],
-        "Sub-Saharan Africa": ["Nigeria", "South Africa", "Kenya", "Ghana", "Ethiopia", "Tanzania"],
-        "Asia": ["China", "India", "Japan", "Indonesia", "Philippines", "Vietnam", "Thailand", "South Korea", "Pakistan"],
-        "Latin America": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
+        "Asia": ["China", "India", "Japan", "Indonesia", "Philippines", "Vietnam", "Thailand", "South Korea", "Pakistan", "Iran", "Saudi Arabia", "UAE"],
+        "Africa": ["Nigeria", "South Africa", "Kenya", "Egypt", "Ghana", "Ethiopia"],
         "Oceania": ["Australia", "New Zealand", "Fiji"]
     };
-
     function updateRegCountries() {
         const region = document.getElementById('regRegion').value;
         const countrySelect = document.getElementById('regCountry');
