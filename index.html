@@ -891,13 +891,34 @@ async function simulatePayment() {
             memo: "PiTrustee Provider Registration Fee",
             metadata: { type: "registration" }
         }, {
-            onReadyForServerApproval: function(paymentId) {
-                console.log("Payment ready for approval:", paymentId);
-            },
-            onReadyForServerCompletion: function(paymentId, txid) {
-                alert("Payment Successful! Your 1 Pi has been sent.\nYour registration is pending admin approval.");
-                switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
-            },
+onReadyForServerApproval: function(paymentId) {
+    const apiKey = "evkywnlwhglfqxrasly8r0wqlqmjilyqdt6mc79owd96a5vhq1lecbcinl8ygrs6";
+    fetch(`https://api.testnet.minepi.com/v2/payments/${paymentId}/approve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Key ${apiKey}` }
+    }).then(res => {
+        if(res.ok) console.log("Approved!");
+        else console.error("Approval failed");
+    });
+},
+onReadyForServerCompletion: function(paymentId, txid) {
+    const apiKey = "evkywnlwhglfqxrasly8r0wqlqmjilyqdt6mc79owd96a5vhq1lecbcinl8ygrs6";
+    fetch(`https://api.testnet.minepi.com/v2/payments/${paymentId}/complete`, {
+        method: 'POST',
+        headers: { 
+            'Authorization': `Key ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ txid: txid })
+    }).then(res => {
+        if(res.ok) {
+            alert("Payment Successful! Your registration is pending admin approval.");
+            switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
+        } else {
+            console.error("Completion failed");
+        }
+    });
+},
             onCancel: function(paymentId) {
                 alert("Payment cancelled by user.");
             },
