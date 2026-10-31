@@ -1118,25 +1118,67 @@ function onIncompletePaymentFound(payment) { console.log(payment); }
     <script>if(window.Pi){Pi.init({version:"2.0",sandbox:true});}</script>
     <script>
     // --- Standardized Geography Data (UN M49 / ISO 3166-1) ---
-        const standardLocations = {
-        "North America": ["United States", "Canada", "Mexico"],
-        "South America": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
-        "Europe": ["United Kingdom", "Germany", "France", "Spain", "Italy", "Netherlands", "Sweden", "Switzerland"],
-        "Asia": ["China", "India", "Japan", "Indonesia", "Philippines", "Vietnam", "Thailand", "South Korea", "Pakistan", "Iran", "Saudi Arabia", "UAE"],
-        "Africa": ["Nigeria", "South Africa", "Kenya", "Egypt", "Ghana", "Ethiopia"],
-        "Oceania": ["Australia", "New Zealand", "Fiji"]
-    };
+            let globalCountriesData = [];
+    
+    // Fetch all countries from a standard public API
+    async function loadCountries() {
+        try {
+            const res = await fetch('https://restcountries.com/v3.1/all?fields=name,region,subregion');
+            globalCountriesData = await res.json();
+        } catch (e) {
+            console.error("Failed to load countries", e);
+        }
+    }
+    loadCountries();
+
     function updateRegCountries() {
         const region = document.getElementById('regRegion').value;
         const countrySelect = document.getElementById('regCountry');
         countrySelect.innerHTML = '<option value="">Select Country...</option>';
-        if (region && standardLocations[region]) {
-            standardLocations[region].forEach(country => {
-                countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
+
+        if (!region || globalCountriesData.length === 0) return;
+
+        const map = {
+            "North America": (c) => c.region === "Americas" && c.subregion === "North America",
+            "South America": (c) => c.region === "Americas" && c.subregion === "South America",
+            "Europe": (c) => c.region === "Europe",
+            "Asia": (c) => c.region === "Asia",
+            "Africa": (c) => c.region === "Africa",
+            "Oceania": (c) => c.region === "Oceania"
+        };
+
+        if (map[region]) {
+            const filtered = globalCountriesData.filter(map[region]).sort((a,b) => a.name.common.localeCompare(b.name.common));
+            filtered.forEach(country => {
+                countrySelect.innerHTML += `<option value="${country.name.common}">${country.name.common}</option>`;
             });
         }
     }
 
+    // Fetch cities for the selected country dynamically
+    async function fetchCitiesForCountry() {
+        const country = document.getElementById('regCountry').value;
+        const cityList = document.getElementById('cityList');
+        cityList.innerHTML = ''; 
+
+        if (!country) return;
+
+        try {
+            const response = await fetch('https://countriesnow.space/api/v0.1/countries/cities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: country })
+            });
+            const data = await response.json();
+            if (data.error === false) {
+                data.data.forEach(city => {
+                    cityList.innerHTML += `<option value="${city}">`;
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching cities:", error);
+        }
+    }
     const categorySubCats = {
         "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health"],
         "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
