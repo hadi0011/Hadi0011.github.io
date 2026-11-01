@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PiTrustee | Decentralized Trust</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script src="data.js"></script>
     <style>
         :root {
             --bg-body: #f0f4f8; --bg-card: #ffffff; --text-main: #2d3748; --text-muted: #718096;
@@ -381,53 +382,37 @@
         setTheme(localStorage.getItem('theme') || 'system');
 
         // --- Standardized Geography Data ---
-        const standardLocations = {
-            "North America": ["United States", "Canada", "Mexico"],
-            "South America": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
-            "Europe": ["United Kingdom", "Germany", "France", "Spain", "Italy", "Netherlands", "Sweden", "Switzerland"],
-            "Asia": ["China", "India", "Japan", "Indonesia", "Philippines", "Vietnam", "Thailand", "South Korea", "Pakistan", "Iran", "Saudi Arabia", "UAE"],
-            "Africa": ["Nigeria", "South Africa", "Kenya", "Egypt", "Ghana", "Ethiopia"],
-            "Oceania": ["Australia", "New Zealand", "Fiji"]
-        };
-
+                // --- Unified Geography Logic (Connecting to data.js) ---
+        
         function populateRegCountries(continent) {
             const select = document.getElementById('regCountry');
             select.innerHTML = '<option value="">Select Country...</option>';
-            if (continent && standardLocations[continent]) {
-                standardLocations[continent].forEach(country => {
-                    select.innerHTML += `<option value="${country}">${country}</option>`;
-                });
-            }
+            if (!continent) return;
+            
+            globalCountriesData.filter(c => c.continent === continent).forEach(country => {
+                select.innerHTML += `<option value="${country.name}">${country.name}</option>`;
+            });
         }
 
         function populateFilterCountries(continent) {
             const select = document.getElementById('countryFilter');
             select.innerHTML = '<option value="All">All Countries</option>';
+            
             if (continent === 'All') {
-                for (let key in standardLocations) {
-                    standardLocations[key].forEach(country => {
-                        select.innerHTML += `<option value="${country}">${country}</option>`;
-                    });
-                }
-            } else if (standardLocations[continent]) {
-                standardLocations[continent].forEach(country => {
-                    select.innerHTML += `<option value="${country}">${country}</option>`;
+                globalCountriesData.forEach(country => {
+                    select.innerHTML += `<option value="${country.name}">${country.name}</option>`;
+                });
+            } else {
+                globalCountriesData.filter(c => c.continent === continent).forEach(country => {
+                    select.innerHTML += `<option value="${country.name}">${country.name}</option>`;
                 });
             }
         }
 
-        function updatePhoneCode(country) {
-            const phoneCodes = {
-                "United States": "+1", "Canada": "+1", "Mexico": "+52",
-                "United Kingdom": "+44", "Germany": "+49", "France": "+33", "Spain": "+34", "Italy": "+39", "Netherlands": "+31", "Sweden": "+46", "Switzerland": "+41",
-                "China": "+86", "India": "+91", "Japan": "+81", "Indonesia": "+62", "Philippines": "+63", "Vietnam": "+84", "Thailand": "+66", "South Korea": "+82", "Pakistan": "+92", "Iran": "+98", "Saudi Arabia": "+966", "UAE": "+971",
-                "Nigeria": "+234", "South Africa": "+27", "Kenya": "+254", "Egypt": "+20", "Ghana": "+233", "Ethiopia": "+251",
-                "Brazil": "+55", "Argentina": "+54", "Colombia": "+57", "Chile": "+56", "Peru": "+51",
-                "Australia": "+61", "New Zealand": "+64", "Fiji": "+679"
-            };
-            document.getElementById('phoneCode').value = phoneCodes[country] || '';
+        function updatePhoneCode(countryName) {
+            const country = globalCountriesData.find(c => c.name === countryName);
+            document.getElementById('phoneCode').value = country ? country.phone : '';
         }
-
         // --- Dynamic Form Logic ---
         const categorySubCats = {
             "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy"],
