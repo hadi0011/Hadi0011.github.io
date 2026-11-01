@@ -1,4 +1,3 @@
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -148,7 +147,15 @@
 
     <header>
         <div class="logo" onclick="switchTab('home', event)">
-            <img src="Logo-PiTrustee.png" alt="PiTrustee Logo" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover;">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 5 L90 20 L90 50 C90 75 50 95 50 95 C50 95 10 75 10 50 L10 20 Z" fill="#1A73E8" stroke="#0d47a1" stroke-width="4"/>
+                <text x="50" y="65" font-size="45" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial, sans-serif">π</text>
+                <circle cx="25" cy="35" r="4" fill="#ffd700"/>
+                <circle cx="75" cy="35" r="4" fill="#ffd700"/>
+                <circle cx="50" cy="80" r="4" fill="#ffd700"/>
+                <line x1="25" y1="35" x2="50" y2="80" stroke="#ffd700" stroke-width="2" opacity="0.6"/>
+                <line x1="75" y1="35" x2="50" y2="80" stroke="#ffd700" stroke-width="2" opacity="0.6"/>
+            </svg>
             <div class="logo-text">
                 <strong>PiTrustee <span class="beta-badge">BETA</span></strong>
                 <span>The First Decentralized Trust System</span>
@@ -162,7 +169,6 @@
             <button onclick="switchTab('merchant', event)">Merchant Console</button>
             <button onclick="switchTab('admin', event)">Admin Panel</button>
             <button onclick="switchTab('help', event)">Help</button>
-            <button onclick="loginWithPi()" style="background: #f7c23c; color: #5c2d91; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-left: 10px;">Login with Pi</button>
             <div class="theme-toggle">
                 <button class="theme-btn">⚙️</button>
                 <div class="theme-menu">
@@ -379,42 +385,23 @@
         </div>
 
         <!-- REGISTER TAB -->
-                <!-- REGISTER TAB -->
         <div id="tab-register" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--primary);">Register New Provider</h2>
-            <form id="providerForm" style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
+            <div style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
                 
-                <!-- Section 1: Identity -->
-                <h3 style="color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">1. Business Identity</h3>
                 <div class="form-group">
-                    <label>Business Name</label>
-                    <input type="text" id="bizName" required placeholder="e.g., Pi Digital Market">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Year Established</label>
-                        <input type="number" id="bizYear" min="1900" max="2026" placeholder="2020">
-                    </div>
-                    <div class="form-group">
-                        <label>Company Size</label>
-                        <select id="bizSize">
-                            <option value="Freelancer">Freelancer</option>
-                            <option value="2-10">2-10 Employees</option>
-                            <option value="11-50">11-50 Employees</option>
-                            <option value="50+">50+ Employees</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Tagline / Short Intro</label>
-                    <input type="text" id="bizTagline" placeholder="Best digital goods in the Pi ecosystem">
+                    <label>Provider Logo</label>
+                    <div class="upload-box" onclick="alert('File upload simulation.')">📷 Click to upload or drag file here</div>
                 </div>
 
-                <!-- Section 2: Service Details -->
-                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Service Details</h3>
+                <div class="form-group">
+                    <label>Service Name</label>
+                    <input type="text" placeholder="e.g., Pi Digital Market">
+                </div>
+                
                 <div class="form-group">
                     <label>Main Category</label>
-                    <select id="regMainCategory" onchange="handleCategoryChange()" required>
+                    <select id="regMainCategory" onchange="updateRegSubCategories()">
                         <option value="">Select Main Category...</option>
                         <option value="Health & Medical">Health & Medical</option>
                         <option value="Sports & Fitness">Sports & Fitness</option>
@@ -429,123 +416,48 @@
                         <option value="Education">Education</option>
                         <option value="Entertainment & Events">Entertainment & Events</option>
                         <option value="Home & Personal Services">Home & Personal Services</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="subCatGroup" style="display: none;">
-                    <label>Sub-Category</label>
-                    <select id="regSubCategory"><option value="">Select Sub-Category...</option></select>
-                </div>
-
-                <!-- Dynamic Fields Container -->
-                <div id="dynamicFields" style="display: none; background: var(--bg-body); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                    <p style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: var(--primary);">Specific Details for <span id="dynCatName"></span>:</p>
-                    <div id="dynFieldsContent"></div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Service Mode</label>
-                        <select id="serviceMode">
-                            <option value="Online">Online Only</option>
-                            <option value="In-store">In-store / On-site</option>
-                            <option value="Both">Both</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Price Range</label>
-                        <select id="priceRange">
-                            <option value="Budget">Budget ($)</option>
-                            <option value="Moderate">Moderate ($$)</option>
-                            <option value="Premium">Premium ($$$)</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Section 3: Location & Contact -->
-                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Continent</label>
-                        <select id="regRegion" onchange="updateRegCountries()">
-                            <option value="">Select Continent...</option>
-                            <option value="North America">North America</option>
-                            <option value="South America">South America</option>
-                            <option value="Europe">Europe</option>
-                            <option value="Asia">Asia</option>
-                            <option value="Africa">Africa</option>
-                            <option value="Oceania">Oceania</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Country</label>
-                        <select id="regCountry" onchange="fetchCitiesForCountry()">
-                            <option value="">Select Country...</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>City</label>
-                        <input type="text" id="regCity" list="cityList" placeholder="Type to search city...">
-                        <datalist id="cityList"></datalist>
-                    </div>
-                    <div class="form-group">
-                        <label>Postal Code</label>
-                        <input type="text" id="regPostalCode" placeholder="e.g., 10001">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Full Address</label>
-                    <input type="text" id="regAddress" placeholder="123 Main St...">
-                </div>
-                <!-- Section 4: Operations -->
-                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">4. Operations</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Working Hours</label>
-                        <input type="text" id="regHours" placeholder="e.g., 9 AM - 9 PM">
-                    </div>
-                    <div class="form-group">
-                        <label>Booking Required?</label>
-                        <select id="regBooking">
-                            <option value="No">No (Walk-in)</option>
-                            <option value="Yes">Yes (Appointment only)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Payment Methods</label>
-                    <select id="regPayment">
-                        <option value="Pi Only">Pi Only</option>
-                        <option value="Pi & Fiat">Pi & Fiat</option>
-                        <option value="Pi & Credit Card">Pi & Credit Card</option>
+                        <option value="Others">Others (Please Specify)</option>
                     </select>
                 </div>
 
-                <!-- Section 5: Financial & Legal -->
-                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">5. Financial & Legal</h3>
-                <div class="form-group">
-                    <label>Pi Wallet Address (For Receiving Payments)</label>
-                    <input type="text" id="regPiWallet" placeholder="G...">
+                <div class="form-group" id="regSubCategoryGroup" style="display: none;">
+                    <label>Sub Category</label>
+                    <select id="regSubCategory"><option value="">Select Sub Category...</option></select>
                 </div>
+
+                <div class="form-group" id="regOthersGroup" style="display: none;">
+                    <label>Specify Your Category (Requires Admin Evaluation)</label>
+                    <input type="text" id="regOthersInput" placeholder="e.g., Pet Funeral Services">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea rows="3" placeholder="Describe your services..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location (Click on map)</label>
+                    <div class="map-placeholder" onclick="alert('Map simulation: Location selected.')">🗺️ (Google Maps Placeholder) - Click to select location</div>
+                </div>
+
+                <div class="form-group"><label>Postal Address</label><input type="text" placeholder="123 Main St, City..."></div>
+                <div class="form-group"><label>Phone Number / WhatsApp</label><input type="text" placeholder="+1 234 567 890"></div>
+                <div class="form-group"><label>Website (Optional)</label><input type="text" placeholder="www.example.com"></div>
+                <div class="form-group"><label>Working Hours</label><input type="text" placeholder="9:00 AM - 5:00 PM"></div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="termsCheckbox" onchange="togglePaymentButton()">
-                    <label for="termsCheckbox">
-                        I confirm that all entered information is accurate and I take full responsibility for any financial transactions and services provided. PiTrustee acts solely as a matching and rating platform and holds no liability for payments, service quality, or disputes.
-                    </label>
+                    <label for="termsCheckbox">I confirm that all entered information is accurate and I take full responsibility for any financial transactions and services provided. PiTrustee acts solely as a matching and rating platform and holds no liability for payments, service quality, or disputes between users and providers.</label>
                 </div>
 
                 <div style="background: rgba(26, 115, 232, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed var(--primary);">
                     <strong style="color: var(--primary);">Registration Fee:</strong> 1 Pi (One-time payment)
                 </div>
-                
-                <button type="button" id="payBtn" class="btn" onclick="saveProviderData()" disabled style="opacity: 0.5; cursor: not-allowed;">Pay 1 Pi & Register</button>
-            </form>
+                <button id="payBtn" class="btn" onclick="simulatePayment()" disabled style="opacity: 0.5; cursor: not-allowed;">Pay 1 Pi & Register</button>
+            </div>
         </div>
+
+        <!-- MERCHANT CONSOLE TAB -->
         <div id="tab-merchant" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--primary);">Merchant Console</h2>
             <div style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
@@ -971,59 +883,12 @@
             btn.style.opacity = checkbox.checked ? '1' : '0.5';
             btn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
         }
-async function simulatePayment() {
-    if (!window.Pi) {
-        alert("Please open this app in Pi Browser.");
-        return;
-    }
 
-    try {
-        const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-        
-        Pi.createPayment({
-            amount: 1,
-            memo: "PiTrustee Provider Registration Fee",
-            metadata: { type: "registration" }
-        }, {
-onReadyForServerApproval: function(paymentId) {
-    const apiKey = "evkywnlwhglfqxrasly8r0wqlqmjilyqdt6mc79owd96a5vhq1lecbcinl8ygrs6";
-    fetch(`https://api.testnet.minepi.com/v2/payments/${paymentId}/approve`, {
-        method: 'POST',
-        headers: { 'Authorization': `Key ${apiKey}` }
-    }).then(res => {
-        if(res.ok) console.log("Approved!");
-        else console.error("Approval failed");
-    });
-},
-onReadyForServerCompletion: function(paymentId, txid) {
-    const apiKey = "evkywnlwhglfqxrasly8r0wqlqmjilyqdt6mc79owd96a5vhq1lecbcinl8ygrs6";
-    fetch(`https://api.testnet.minepi.com/v2/payments/${paymentId}/complete`, {
-        method: 'POST',
-        headers: { 
-            'Authorization': `Key ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ txid: txid })
-    }).then(res => {
-        if(res.ok) {
-            alert("Payment Successful! Your registration is pending admin approval.");
+        function simulatePayment() {
+            alert('Pi Wallet connection simulated for 1 Pi payment.\nYour registration is pending admin approval.');
             switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
-        } else {
-            console.error("Completion failed");
         }
-    });
-},
-            onCancel: function(paymentId) {
-                alert("Payment cancelled by user.");
-            },
-            onError: function(error, payment) {
-                alert("Payment error: " + error.message);
-            }
-        });
-    } catch (err) {
-        alert("Authentication failed: " + err.message);
-    }
-}
+
         // Modal
         function openModal(title, desc, address, phone, website) {
             document.getElementById('modalTitle').innerText = title;
@@ -1045,20 +910,6 @@ onReadyForServerCompletion: function(paymentId, txid) {
         }
 
         // Chatbot
-      // alert(window.Pi ? "Pi SDK is Loaded" : "Pi SDK NOT Found");
-        async function loginWithPi() {
-    if (window.Pi) {
-        try {
-            const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-            alert("Welcome, Pioneer: " + auth.user.username);
-        } catch (err) {
-            alert("Login failed: " + err.message);
-        }
-    } else {
-        alert("Please open this app in Pi Browser.");
-    }
-}
-function onIncompletePaymentFound(payment) { console.log(payment); }
         function toggleChat() {
             const w = document.getElementById('chatbotWindow');
             w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
@@ -1115,186 +966,5 @@ function onIncompletePaymentFound(payment) { console.log(payment); }
             }, 600);
         }
     </script>
-    <script>if(window.Pi){Pi.init({version:"2.0",sandbox:true});}</script>
-    <script>
-    // --- Standardized Geography Data (UN M49 / ISO 3166-1) ---
-            let globalCountriesData = [];
-    
-    // Fetch all countries from a standard public API
-    async function loadCountries() {
-        try {
-            const res = await fetch('https://restcountries.com/v3.1/all?fields=name,region,subregion');
-            globalCountriesData = await res.json();
-        } catch (e) {
-            console.error("Failed to load countries", e);
-        }
-    }
-    loadCountries();
-
-    function updateRegCountries() {
-        const region = document.getElementById('regRegion').value;
-        const countrySelect = document.getElementById('regCountry');
-        countrySelect.innerHTML = '<option value="">Select Country...</option>';
-
-        if (!region || globalCountriesData.length === 0) return;
-
-        const map = {
-            "North America": (c) => c.region === "Americas" && c.subregion === "North America",
-            "South America": (c) => c.region === "Americas" && c.subregion === "South America",
-            "Europe": (c) => c.region === "Europe",
-            "Asia": (c) => c.region === "Asia",
-            "Africa": (c) => c.region === "Africa",
-            "Oceania": (c) => c.region === "Oceania"
-        };
-
-        if (map[region]) {
-            const filtered = globalCountriesData.filter(map[region]).sort((a,b) => a.name.common.localeCompare(b.name.common));
-            filtered.forEach(country => {
-                countrySelect.innerHTML += `<option value="${country.name.common}">${country.name.common}</option>`;
-            });
-        }
-    }
-
-    // Fetch cities for the selected country dynamically
-    async function fetchCitiesForCountry() {
-        const country = document.getElementById('regCountry').value;
-        const cityList = document.getElementById('cityList');
-        cityList.innerHTML = ''; 
-
-        if (!country) return;
-
-        try {
-            const response = await fetch('https://countriesnow.space/api/v0.1/countries/cities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ country: country })
-            });
-            const data = await response.json();
-            if (data.error === false) {
-                data.data.forEach(city => {
-                    cityList.innerHTML += `<option value="${city}">`;
-                });
-            }
-        } catch (error) {
-            console.error("Error fetching cities:", error);
-        }
-    }
-    const categorySubCats = {
-        "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health"],
-        "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
-        "Food & Dining": ["Restaurant", "Cafe", "Fast Food", "Catering"],
-        "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide"],
-        "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier"],
-        "Retail & Shopping": ["Electronics", "Fashion", "Groceries"],
-        "Finance & Exchange": ["Crypto Exchange", "Accounting", "Insurance"],
-        "IT & Technology": ["App Development", "Web Design", "IT Support"],
-        "Professional Services": ["Legal", "Marketing", "Translation"],
-        "Real Estate": ["Agent", "Property Management"],
-        "Education": ["Tutoring", "Online Courses"],
-        "Entertainment & Events": ["Event Planning", "Cinema"],
-        "Home & Personal Services": ["Cleaning", "Repair", "Beauty"]
-    };
-
-    function handleCategoryChange() {
-        const mainCat = document.getElementById('regMainCategory').value;
-        const subCatGroup = document.getElementById('subCatGroup');
-        const subCatSelect = document.getElementById('regSubCategory');
-        const dynFields = document.getElementById('dynamicFields');
-        const dynContent = document.getElementById('dynFieldsContent');
-        const dynCatName = document.getElementById('dynCatName');
-
-        if (mainCat && categorySubCats[mainCat]) {
-            subCatGroup.style.display = 'block';
-            subCatSelect.innerHTML = '<option value="">Select Sub-Category...</option>';
-            categorySubCats[mainCat].forEach(sub => {
-                subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-            });
-        } else {
-            subCatGroup.style.display = 'none';
-        }
-
-        dynContent.innerHTML = '';
-        if (mainCat) {
-            dynFields.style.display = 'block';
-            dynCatName.innerText = mainCat;
-
-            if (mainCat === "Food & Dining") {
-                dynContent.innerHTML = `
-                    <div class="form-group"><label>Delivery Available?</label><select><option>Yes (Own Delivery)</option><option>Yes (3rd Party)</option><option>No (Pickup Only)</option></select></div>
-                    <div class="form-group"><label>Average Prep Time</label><input type="text" placeholder="e.g., 30 mins"></div>
-                `;
-            } else if (mainCat === "IT & Technology") {
-                dynContent.innerHTML = `
-                    <div class="form-group"><label>Portfolio Link</label><input type="text" placeholder="Link to GitHub or Behance"></div>
-                    <div class="form-group"><label>Project Delivery Time</label><input type="text" placeholder="e.g., 2 Weeks"></div>
-                `;
-            } else if (mainCat === "Health & Medical") {
-                dynContent.innerHTML = `
-                    <div class="form-group"><label>Telemedicine Available?</label><select><option>Yes (Video Call)</option><option>No (In-person only)</option></select></div>
-                `;
-            } else {
-                dynContent.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Standard fields apply for this category.</p>`;
-            }
-        } else {
-            dynFields.style.display = 'none';
-        }
-    }
-
-    function saveProviderData() {
-        const providerData = {
-            name: document.getElementById('bizName').value,
-            year: document.getElementById('bizYear').value,
-            size: document.getElementById('bizSize').value,
-            tagline: document.getElementById('bizTagline').value,
-            category: document.getElementById('regMainCategory').value,
-            subCategory: document.getElementById('regSubCategory').value,
-            region: document.getElementById('regRegion').value,
-            country: document.getElementById('regCountry').value,
-            city: document.getElementById('regCity').value,
-            postalCode: document.getElementById('regPostalCode').value,
-            address: document.getElementById('regAddress').value,
-            phone: document.getElementById('regPhone').value,
-            website: document.getElementById('regWebsite').value,
-            hours: document.getElementById('regHours').value,
-            booking: document.getElementById('regBooking').value,
-            payment: document.getElementById('regPayment').value,
-            piWallet: document.getElementById('regPiWallet').value
-        };
-
-        if (!providerData.name || !providerData.category) {
-            alert("Please fill in the Business Name and Category.");
-            return;
-        }
-
-        localStorage.setItem('piTrusteeProvider', JSON.stringify(providerData));
-        simulatePayment();
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedData = localStorage.getItem('piTrusteeProvider');
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            if(document.getElementById('bizName')) document.getElementById('bizName').value = data.name || '';
-            if(document.getElementById('bizYear')) document.getElementById('bizYear').value = data.year || '';
-            if(document.getElementById('bizTagline')) document.getElementById('bizTagline').value = data.tagline || '';
-            if(document.getElementById('regMainCategory')) {
-                document.getElementById('regMainCategory').value = data.category || '';
-                handleCategoryChange();
-            }
-            if(document.getElementById('regRegion')) {
-                document.getElementById('regRegion').value = data.region || '';
-                updateRegCountries();
-            }
-            if(document.getElementById('regCountry')) document.getElementById('regCountry').value = data.country || '';
-            if(document.getElementById('regCity')) document.getElementById('regCity').value = data.city || '';
-            if(document.getElementById('regAddress')) document.getElementById('regAddress').value = data.address || '';
-            if(document.getElementById('regPhone')) document.getElementById('regPhone').value = data.phone || '';
-            if(document.getElementById('regWebsite')) document.getElementById('regWebsite').value = data.website || '';
-            if(document.getElementById('regHours')) document.getElementById('regHours').value = data.hours || '';
-            if(document.getElementById('regPiWallet')) document.getElementById('regPiWallet').value = data.piWallet || '';
-            if(document.getElementById('regSubCategory')) document.getElementById('regSubCategory').value = data.subCategory || '';
-        }
-    });
-</script>
 </body>
 </html>
