@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PiTrustee | Decentralized Trust</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         :root {
             --bg-body: #f0f4f8; --bg-card: #ffffff; --text-main: #2d3748; --text-muted: #718096;
@@ -19,7 +20,7 @@
         
         header { background-color: var(--bg-card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); border-bottom: 2px solid var(--border-color); flex-wrap: wrap; gap: 15px; }
         .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .logo svg { width: 45px; height: 45px; }
+        .logo img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; }
         .logo-text strong { font-size: 22px; font-weight: 800; color: var(--primary); }
         .logo-text span { font-size: 12px; color: var(--text-muted); display: block; }
         .beta-badge { background: #ffd700; color: #1a1a2e; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
@@ -53,7 +54,6 @@
         .search-bar input:focus, .filter-dropdown:focus { border-color: var(--primary); }
         .filter-dropdown { min-width: 120px; cursor: pointer; font-weight: 600; }
 
-        /* Google Play style provider card */
         .provider-card { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: 0.3s; display: flex; gap: 15px; align-items: flex-start; }
         .provider-card:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
         .provider-card.featured { border: 2px solid #ffd700; background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent); }
@@ -144,18 +144,9 @@
     </style>
 </head>
 <body data-theme="light">
-
-    <header>
+        <header>
         <div class="logo" onclick="switchTab('home', event)">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 5 L90 20 L90 50 C90 75 50 95 50 95 C50 95 10 75 10 50 L10 20 Z" fill="#1A73E8" stroke="#0d47a1" stroke-width="4"/>
-                <text x="50" y="65" font-size="45" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial, sans-serif">π</text>
-                <circle cx="25" cy="35" r="4" fill="#ffd700"/>
-                <circle cx="75" cy="35" r="4" fill="#ffd700"/>
-                <circle cx="50" cy="80" r="4" fill="#ffd700"/>
-                <line x1="25" y1="35" x2="50" y2="80" stroke="#ffd700" stroke-width="2" opacity="0.6"/>
-                <line x1="75" y1="35" x2="50" y2="80" stroke="#ffd700" stroke-width="2" opacity="0.6"/>
-            </svg>
+            <img src="Logo-PiTrustee.png" alt="PiTrustee Logo">
             <div class="logo-text">
                 <strong>PiTrustee <span class="beta-badge">BETA</span></strong>
                 <span>The First Decentralized Trust System</span>
@@ -169,6 +160,7 @@
             <button onclick="switchTab('merchant', event)">Merchant Console</button>
             <button onclick="switchTab('admin', event)">Admin Panel</button>
             <button onclick="switchTab('help', event)">Help</button>
+            <button onclick="loginWithPi()" style="background: #f7c23c; color: #5c2d91; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-left: 10px;">Login with Pi</button>
             <div class="theme-toggle">
                 <button class="theme-btn">⚙️</button>
                 <div class="theme-menu">
@@ -197,23 +189,14 @@
 
             <div class="search-section">
                 <div class="search-bar">
-                    <input type="text" id="homeSearchInput" placeholder="🔍 Search services (e.g., dentist, gym, hotel)..." onkeyup="filterHomeProviders()">
+                    <input type="text" id="homeSearchInput" placeholder="🔍 Search services..." onkeyup="filterHomeProviders()">
                 </div>
                 <select class="filter-dropdown" id="homeCatFilter" onchange="updateHomeSubCats(); filterHomeProviders()">
                     <option value="All">All Categories</option>
                     <option value="Health & Medical">Health & Medical</option>
-                    <option value="Sports & Fitness">Sports & Fitness</option>
-                    <option value="Food & Dining">Food & Dining</option>
-                    <option value="Travel & Hospitality">Travel & Hospitality</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Retail & Shopping">Retail & Shopping</option>
-                    <option value="Finance & Exchange">Finance & Exchange</option>
                     <option value="IT & Technology">IT & Technology</option>
-                    <option value="Professional Services">Professional Services</option>
-                    <option value="Real Estate">Real Estate</option>
-                    <option value="Education">Education</option>
-                    <option value="Entertainment & Events">Entertainment & Events</option>
-                    <option value="Home & Personal Services">Home & Personal Services</option>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Retail & Shopping">Retail & Shopping</option>
                 </select>
                 <select class="filter-dropdown" id="homeSubCatFilter" onchange="filterHomeProviders()">
                     <option value="All">All Subcategories</option>
@@ -222,7 +205,6 @@
 
             <h2 style="margin-bottom: 15px; color: var(--primary);">Top Rated Providers</h2>
             <div id="homeProviderList">
-                
                 <div class="provider-card featured" data-cat="Health & Medical" data-subcat="Doctors & Clinics" data-name="pi health clinic">
                     <div class="provider-icon">🏥</div>
                     <div class="provider-info">
@@ -232,77 +214,16 @@
                             <span>•</span>
                             <span>Health & Medical • Doctors & Clinics</span>
                         </div>
-                        <div class="provider-desc">General practice, specialists, and telemedicine consultations. Pi payments accepted.</div>
+                        <div class="provider-desc">General practice, specialists, and telemedicine consultations.</div>
                         <div class="provider-meta">
-                            <span class="meta-tag">📍 MENA, Iran, Tehran</span>
-                            <span class="meta-tag">📞 +98-21-12345678</span>
+                            <span class="meta-tag">📍 North America, USA, New York</span>
+                            <span class="meta-tag">📞 +1-212-555-0199</span>
                         </div>
                         <div class="action-row">
-                            <button class="btn btn-sm" onclick="openModal('Pi Health Clinic', 'General practice, specialists, and telemedicine consultations.', 'MENA, Iran, Tehran', '+98-21-12345678', 'pihealth.com')">View Details</button>
+                            <button class="btn btn-sm" onclick="openModal('Pi Health Clinic', 'General practice...', 'North America, USA, New York', '+1-212-555-0199', 'pihealth.com')">View Details</button>
                         </div>
                     </div>
                 </div>
-
-                <div class="provider-card" data-cat="Sports & Fitness" data-subcat="Fitness Centers" data-name="fit pi gym">
-                    <div class="provider-icon">🏋️</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Fit Pi Gym ✅</div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.7 <span style="color: var(--text-muted); font-weight: 400;">(89 reviews)</span></span>
-                            <span>•</span>
-                            <span>Sports & Fitness • Fitness Centers</span>
-                        </div>
-                        <div class="provider-desc">Modern gym with crossfit, yoga, and personal training services.</div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 MENA, UAE, Dubai</span>
-                            <span class="meta-tag">📞 +971-4-1234567</span>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn btn-sm" onclick="openModal('Fit Pi Gym', 'Modern gym with crossfit, yoga, and personal training services.', 'MENA, UAE, Dubai', '+971-4-1234567', 'fitpi.ae')">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="provider-card" data-cat="Food & Dining" data-subcat="Restaurants" data-name="pi bistro">
-                    <div class="provider-icon">🍽️</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Pi Bistro ✅</div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.5 <span style="color: var(--text-muted); font-weight: 400;">(67 reviews)</span></span>
-                            <span>•</span>
-                            <span>Food & Dining • Restaurants</span>
-                        </div>
-                        <div class="provider-desc">Contemporary fine dining with Pi payment support.</div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 Europe, UK, London</span>
-                            <span class="meta-tag">📞 +44-20-12345678</span>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn btn-sm" onclick="openModal('Pi Bistro', 'Contemporary fine dining with Pi payment support.', 'Europe, UK, London', '+44-20-12345678', 'pibistro.co.uk')">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="provider-card" data-cat="Transportation" data-subcat="Taxi/Ride-hailing" data-name="pi taxi">
-                    <div class="provider-icon">🚕</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Pi Taxi ✅</div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.4 <span style="color: var(--text-muted); font-weight: 400;">(210 reviews)</span></span>
-                            <span>•</span>
-                            <span>Transportation • Taxi/Ride-hailing</span>
-                        </div>
-                        <div class="provider-desc">Reliable ride-hailing service accepting Pi payments.</div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 MENA, Iran, Tehran</span>
-                            <span class="meta-tag">📞 +98-912-1234567</span>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn btn-sm" onclick="openModal('Pi Taxi', 'Reliable ride-hailing service accepting Pi payments.', 'MENA, Iran, Tehran', '+98-912-1234567', 'pitaxi.ir')">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
@@ -313,39 +234,22 @@
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Search provider name..." onkeyup="filterProviders()">
                 </div>
-                <select class="filter-dropdown" id="regionFilter" onchange="updateCountries(); filterProviders()">
+                <select class="filter-dropdown" id="regionFilter" onchange="populateFilterCountries(this.value); filterProviders()">
                     <option value="All">All Regions</option>
-                    <option value="MENA">Middle East & North Africa</option>
-                    <option value="Africa">Sub-Saharan Africa</option>
-                    <option value="Europe">Europe</option>
                     <option value="North America">North America</option>
-                    <option value="Latin America">Latin America</option>
+                    <option value="Europe">Europe</option>
                     <option value="Asia">Asia</option>
+                    <option value="Africa">Africa</option>
+                    <option value="South America">South America</option>
                     <option value="Oceania">Oceania</option>
-                    <option value="Online">Online</option>
                 </select>
-                <select class="filter-dropdown" id="countryFilter" onchange="updateCities(); filterProviders()">
+                <select class="filter-dropdown" id="countryFilter" onchange="filterProviders()">
                     <option value="All">All Countries</option>
-                </select>
-                <select class="filter-dropdown" id="cityFilter" onchange="filterProviders()">
-                    <option value="All">All Cities</option>
                 </select>
                 <select class="filter-dropdown" id="categoryFilter" onchange="updateSubCategories(); filterProviders()">
                     <option value="All">All Categories</option>
                     <option value="Health & Medical">Health & Medical</option>
-                    <option value="Sports & Fitness">Sports & Fitness</option>
-                    <option value="Food & Dining">Food & Dining</option>
-                    <option value="Travel & Hospitality">Travel & Hospitality</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Retail & Shopping">Retail & Shopping</option>
-                    <option value="Finance & Exchange">Finance & Exchange</option>
                     <option value="IT & Technology">IT & Technology</option>
-                    <option value="Professional Services">Professional Services</option>
-                    <option value="Real Estate">Real Estate</option>
-                    <option value="Education">Education</option>
-                    <option value="Entertainment & Events">Entertainment & Events</option>
-                    <option value="Home & Personal Services">Home & Personal Services</option>
-                    <option value="Others">Others</option>
                 </select>
                 <select class="filter-dropdown" id="subCategoryFilter" onchange="filterProviders()">
                     <option value="All">All Subcategories</option>
@@ -353,32 +257,17 @@
             </div>
             
             <div id="providerList">
-                <div class="provider-card" data-cat="Health & Medical" data-subcat="Doctors & Clinics" data-name="pi health clinic" data-region="MENA" data-country="Iran" data-city="Tehran">
+                 <div class="provider-card" data-cat="Health & Medical" data-subcat="Doctors & Clinics" data-name="pi health clinic" data-region="North America" data-country="United States" data-city="New York">
                     <div class="provider-icon">🏥</div>
                     <div class="provider-info">
                         <div class="provider-name">Pi Health Clinic</div>
                         <div class="provider-meta">
                             <span class="provider-rating-inline">⭐ 4.9 <span style="color: var(--text-muted); font-weight: 400;">(124 reviews)</span></span>
-                            <span>• Health & Medical</span>
                         </div>
                         <div class="provider-meta">
-                            <span class="meta-tag">📍 MENA, Iran, Tehran</span>
+                            <span class="meta-tag">📍 North America, USA, New York</span>
                         </div>
-                        <button class="btn btn-sm" style="margin-top: 8px;" onclick="openModal('Pi Health Clinic', 'General practice details.', 'Tehran', '+98-21-12345678', 'pihealth.com')">View Details</button>
-                    </div>
-                </div>
-                <div class="provider-card" data-cat="Sports & Fitness" data-subcat="Fitness Centers" data-name="fit pi gym" data-region="MENA" data-country="UAE" data-city="Dubai">
-                    <div class="provider-icon">🏋️</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Fit Pi Gym</div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.7 <span style="color: var(--text-muted); font-weight: 400;">(89 reviews)</span></span>
-                            <span>• Sports & Fitness</span>
-                        </div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 MENA, UAE, Dubai</span>
-                        </div>
-                        <button class="btn btn-sm" style="margin-top: 8px;" onclick="openModal('Fit Pi Gym', 'Gym details.', 'Dubai', '+971-4-1234567', 'fitpi.ae')">View Details</button>
+                        <button class="btn btn-sm" style="margin-top: 8px;" onclick="openModal('Pi Health Clinic', 'Details...', 'North America, USA, New York', '+1-212-555-0199', 'pihealth.com')">View Details</button>
                     </div>
                 </div>
             </div>
@@ -387,492 +276,178 @@
         <!-- REGISTER TAB -->
         <div id="tab-register" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--primary);">Register New Provider</h2>
-            <div style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
+            <form id="providerForm" style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
                 
+                <h3 style="color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">1. Business Identity</h3>
                 <div class="form-group">
-                    <label>Provider Logo</label>
-                    <div class="upload-box" onclick="alert('File upload simulation.')">📷 Click to upload or drag file here</div>
-                </div>
-
-                <div class="form-group">
-                    <label>Service Name</label>
-                    <input type="text" placeholder="e.g., Pi Digital Market">
+                    <label>Business Name</label>
+                    <input type="text" id="bizName" required placeholder="e.g., Pi Digital Market">
                 </div>
                 
+                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Service Details</h3>
                 <div class="form-group">
                     <label>Main Category</label>
-                    <select id="regMainCategory" onchange="updateRegSubCategories()">
+                    <select id="regMainCategory" onchange="handleCategoryChange()" required>
                         <option value="">Select Main Category...</option>
                         <option value="Health & Medical">Health & Medical</option>
-                        <option value="Sports & Fitness">Sports & Fitness</option>
-                        <option value="Food & Dining">Food & Dining</option>
-                        <option value="Travel & Hospitality">Travel & Hospitality</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Retail & Shopping">Retail & Shopping</option>
-                        <option value="Finance & Exchange">Finance & Exchange</option>
                         <option value="IT & Technology">IT & Technology</option>
-                        <option value="Professional Services">Professional Services</option>
-                        <option value="Real Estate">Real Estate</option>
-                        <option value="Education">Education</option>
-                        <option value="Entertainment & Events">Entertainment & Events</option>
-                        <option value="Home & Personal Services">Home & Personal Services</option>
-                        <option value="Others">Others (Please Specify)</option>
+                        <option value="Food & Dining">Food & Dining</option>
+                        <option value="Retail & Shopping">Retail & Shopping</option>
                     </select>
                 </div>
-
-                <div class="form-group" id="regSubCategoryGroup" style="display: none;">
-                    <label>Sub Category</label>
-                    <select id="regSubCategory"><option value="">Select Sub Category...</option></select>
+                
+                <div class="form-group" id="subCatGroup" style="display: none;">
+                    <label>Sub-Category</label>
+                    <select id="regSubCategory"><option value="">Select Sub-Category...</option></select>
                 </div>
 
-                <div class="form-group" id="regOthersGroup" style="display: none;">
-                    <label>Specify Your Category (Requires Admin Evaluation)</label>
-                    <input type="text" id="regOthersInput" placeholder="e.g., Pet Funeral Services">
-                </div>
-
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea rows="3" placeholder="Describe your services..."></textarea>
+                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Continent</label>
+                        <select id="regRegion" onchange="populateRegCountries(this.value)">
+                            <option value="">Select Continent...</option>
+                            <option value="North America">North America</option>
+                            <option value="South America">South America</option>
+                            <option value="Europe">Europe</option>
+                            <option value="Asia">Asia</option>
+                            <option value="Africa">Africa</option>
+                            <option value="Oceania">Oceania</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <select id="regCountry" onchange="updatePhoneCode(this.value)">
+                            <option value="">Select Country...</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label>Location (Click on map)</label>
-                    <div class="map-placeholder" onclick="alert('Map simulation: Location selected.')">🗺️ (Google Maps Placeholder) - Click to select location</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>City / State</label>
+                        <input type="text" id="regCity" placeholder="e.g., New York">
+                    </div>
+                    <div class="form-group">
+                        <label>Postal Code</label>
+                        <input type="text" id="regPostalCode" placeholder="e.g., 10001">
+                    </div>
                 </div>
 
-                <div class="form-group"><label>Postal Address</label><input type="text" placeholder="123 Main St, City..."></div>
-                <div class="form-group"><label>Phone Number / WhatsApp</label><input type="text" placeholder="+1 234 567 890"></div>
-                <div class="form-group"><label>Website (Optional)</label><input type="text" placeholder="www.example.com"></div>
-                <div class="form-group"><label>Working Hours</label><input type="text" placeholder="9:00 AM - 5:00 PM"></div>
+                <div class="form-group">
+                    <label>Full Address</label>
+                    <input type="text" id="regAddress" placeholder="123 Main St...">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Phone / WhatsApp</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="phoneCode" style="width: 80px;" readonly placeholder="+1">
+                            <input type="text" id="regPhone" placeholder="234 567 890" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Website (Optional)</label>
+                        <input type="text" id="regWebsite" placeholder="www.example.com">
+                    </div>
+                </div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="termsCheckbox" onchange="togglePaymentButton()">
-                    <label for="termsCheckbox">I confirm that all entered information is accurate and I take full responsibility for any financial transactions and services provided. PiTrustee acts solely as a matching and rating platform and holds no liability for payments, service quality, or disputes between users and providers.</label>
+                    <label for="termsCheckbox">
+                        I confirm that all entered information is accurate and I take full responsibility for any financial transactions and services provided. PiTrustee acts solely as a matching and rating platform and holds no liability for payments, service quality, or disputes.
+                    </label>
                 </div>
 
                 <div style="background: rgba(26, 115, 232, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed var(--primary);">
                     <strong style="color: var(--primary);">Registration Fee:</strong> 1 Pi (One-time payment)
                 </div>
-                <button id="payBtn" class="btn" onclick="simulatePayment()" disabled style="opacity: 0.5; cursor: not-allowed;">Pay 1 Pi & Register</button>
-            </div>
-        </div>
-
-        <!-- MERCHANT CONSOLE TAB -->
-        <div id="tab-merchant" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Merchant Console</h2>
-            <div style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
-                    <div>
-                        <h3 style="font-size: 20px;">PiMart Store</h3>
-                        <span style="color: var(--success); font-weight: bold;">✅ Verified Provider</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 24px; font-weight: 800; color: var(--primary);">⭐ 4.8</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">from 12 reviews</div>
-                    </div>
-                </div>
-
-                <h4 style="margin-bottom: 15px;">Your Subscription Plan</h4>
-                <div class="stats-grid">
-                    <div class="stat-card" style="border: 2px solid var(--primary);">
-                        <div class="stat-value">Basic</div>
-                        <div class="stat-label">Current Plan (Free)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">Pro</div>
-                        <div class="stat-label">5 Pi / month</div>
-                        <button class="btn btn-sm" style="margin-top: 10px; background: var(--success);" onclick="alert('Upgraded to Pro! Simulation.')">Upgrade</button>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">Featured</div>
-                        <div class="stat-label">10 Pi / month</div>
-                        <button class="btn btn-sm" style="margin-top: 10px; background: #d69e2e;" onclick="alert('Upgraded to Featured! Simulation.')">Upgrade</button>
-                    </div>
-                </div>
-
-                <h4 style="margin-bottom: 15px; margin-top: 30px;">Recent Reviews & Responses</h4>
-                <div class="review-item">
-                    <div class="review-header">
-                        <span class="reviewer-name">User (Tier 3)</span>
-                        <span class="review-stars">⭐⭐⭐⭐</span>
-                    </div>
-                    <p class="review-text">Delivery took a bit long, but the quality was good.</p>
-                    <div class="review-reply">
-                        <strong style="color: var(--success); font-size: 12px;">Your Reply:</strong>
-                        <p style="margin-top: 4px; color: var(--text-main);">Hello, thank you for your patience. We are working to improve our delivery times. 🌹</p>
-                    </div>
-                    <input type="text" placeholder="Write a new reply..." style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); margin-top: 8px; background: var(--bg-card); color: var(--text-main);">
-                    <button class="btn btn-sm" style="background: var(--success); margin-top: 5px;">Send Reply</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ADMIN TAB -->
-        <div id="tab-admin" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Admin Panel</h2>
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Provider Name</th>
-                        <th>Category / Others</th>
-                        <th>Payment Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Pi Health Clinic</td>
-                        <td>Health & Medical</td>
-                        <td style="color: var(--success); font-weight: bold;">1 Pi (Paid)</td>
-                        <td>
-                            <button style="background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Approve</button>
-                            <button style="background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Reject</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Pet Funeral Services</td>
-                        <td><span style="color: var(--warning); font-weight: bold;">Others:</span> Pet Funeral</td>
-                        <td style="color: var(--success); font-weight: bold;">1 Pi (Paid)</td>
-                        <td>
-                            <button style="background: var(--primary); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Evaluate Category</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- HELP TAB (with sub-tabs) -->
-        <div id="tab-help" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Help & Information</h2>
-
-            <div class="help-tabs">
-                <button class="help-tab-btn active" onclick="switchHelpTab('about', event)">About PiTrustee</button>
-                <button class="help-tab-btn" onclick="switchHelpTab('howto', event)">How It Works</button>
-                <button class="help-tab-btn" onclick="switchHelpTab('rating', event)">Rating System</button>
-                <button class="help-tab-btn" onclick="switchHelpTab('author', event)">Author</button>
-                <button class="help-tab-btn" onclick="switchHelpTab('contact', event)">Contact</button>
-            </div>
-
-            <!-- About -->
-            <div class="help-tab-content active" id="help-about">
-                <div class="help-box">
-                    <h3>🌟 About PiTrustee</h3>
-                    <p style="color: var(--text-main); margin-bottom: 15px;">
-                        PiTrustee is the first decentralized trust and reputation system built for the Pi Network ecosystem. It enables users and service providers to build trust through transparent, community-driven verification.
-                    </p>
-                    <p style="color: var(--text-muted); margin-bottom: 20px;">
-                        PiTrustee is designed as a DAO (Decentralized Autonomous Organization), where the community — not a central authority — governs trust. Every vote carries weight based on the voter's engagement level, ensuring fair and reliable ratings.
-                    </p>
-                    <div class="info-row"><span class="info-label">Version</span><span class="info-value">v1.0.0-BETA</span></div>
-                    <div class="info-row"><span class="info-label">Release Date</span><span class="info-value">2026</span></div>
-                    <div class="info-row"><span class="info-label">License</span><span class="info-value">Decentralized & Community-owned</span></div>
-                    <div class="info-row"><span class="info-label">Status</span><span class="info-value" style="color: var(--warning);">BETA (Active Development)</span></div>
-                </div>
-            </div>
-
-            <!-- How It Works -->
-            <div class="help-tab-content" id="help-howto">
-                <div class="help-box">
-                    <h3>🛠️ How It Works</h3>
-                    <ol style="padding-left: 20px; color: var(--text-main); line-height: 2;">
-                        <li><strong>Providers Register:</strong> Service providers pay a one-time 1 Pi fee to register and submit their information for admin approval.</li>
-                        <li><strong>Users Vote:</strong> Every KYC-verified Pi user can rate and review any provider with 1 to 5 stars. Votes are weighted by the user's Tier level.</li>
-                        <li><strong>Community Trust Score:</strong> Each provider's final score is calculated using a weighted formula across all 4 tiers.</li>
-                        <li><strong>Transparent Records:</strong> All votes and reviews are recorded on the Pi blockchain for full auditability.</li>
-                        <li><strong>DAO Governance:</strong> Future decisions (fee adjustments, rule changes) will be voted by the community.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <!-- Rating System -->
-            <div class="help-tab-content" id="help-rating">
-                <div class="help-box">
-                    <h3>⭐ Rating System (4 Tiers)</h3>
-                    <p style="margin-bottom: 15px; color: var(--text-main);">Your vote weight depends on your activity in the Pi Network:</p>
-                    <div class="info-row"><span class="info-label">Tier 1 (KYC only)</span><span class="info-value">Weight: 1</span></div>
-                    <div class="info-row"><span class="info-label">Tier 2 (5+ transactions)</span><span class="info-value">Weight: 3</span></div>
-                    <div class="info-row"><span class="info-label">Tier 3 (20+ transactions & 1000+ Pi)</span><span class="info-value">Weight: 10</span></div>
-                    <div class="info-row"><span class="info-label">Tier 4 (Community Validator)</span><span class="info-value">Weight: 50</span></div>
-                    <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">
-                        <strong>Final Score Formula:</strong> (Tier1 avg × 1) + (Tier2 avg × 3) + (Tier3 avg × 10) + (Tier4 avg × 50)
-                    </p>
-                </div>
-            </div>
-
-            <!-- Author -->
-            <div class="help-tab-content" id="help-author">
-                <div class="help-box">
-                    <h3>👨‍💻 About the Author</h3>
-                    <p style="color: var(--text-main); margin-bottom: 15px;">
-                        PiTrustee is independently developed by a Pi Network Pioneer who believes in the power of community-driven trust.
-                    </p>
-                    <p style="color: var(--text-muted);">
-                        The goal is to create a real utility for the Pi ecosystem — a tool that turns Pi from a token into a functional economy where trust is verifiable, transparent, and decentralized.
-                    </p>
-                    <div class="info-row" style="margin-top: 20px;"><span class="info-label">Developer</span><span class="info-value">Independent Pioneer</span></div>
-                    <div class="info-row"><span class="info-label">Contact</span><span class="info-value">@MainHadi0011 (Telegram)</span></div>
-                </div>
-            </div>
-
-            <!-- Contact -->
-            <div class="help-tab-content" id="help-contact">
-                <div class="help-box">
-                    <h3>📞 Contact the Developer</h3>
-                    <p style="color: var(--text-main); margin-bottom: 15px;">
-                        For bug reports, feature requests, partnership inquiries, or general feedback, reach out on Telegram:
-                    </p>
-                    <a href="https://t.me/MainHadi0011" target="_blank" class="contact-link">
-                        💬 @MainHadi0011 on Telegram
-                    </a>
-                    <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">
-                        We typically respond within 24-48 hours. Your feedback shapes the future of PiTrustee.
-                    </p>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Provider Modal -->
-    <div class="modal-overlay" id="providerModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">✕</button>
-            <div class="modal-title" id="modalTitle" style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 5px;">Provider Name</div>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 5px;" id="modalAddress">Address</p>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 5px;" id="modalPhone">Phone</p>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;" id="modalWebsite">Website</p>
-            <p id="modalDesc" style="color: var(--text-muted); margin-bottom: 20px;">Description</p>
-            
-            <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--primary);">User Reviews</h3>
-            <div class="review-item">
-                <div class="review-header">
-                    <span class="reviewer-name">Ali (Tier 3 - Weight 10)</span>
-                    <span class="review-stars">⭐⭐⭐⭐⭐</span>
-                </div>
-                <p class="review-text">Excellent and secure service. Support responded quickly.</p>
-                <button style="background: none; border: none; color: var(--danger); font-size: 11px; cursor: pointer;" onclick="alert('Report submitted. Our team will review it.')">🚩 Report Abuse</button>
-            </div>
-
-            <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--primary); margin-top: 20px;">Submit New Review</h3>
-            <div style="display: flex; gap: 5px; font-size: 24px; cursor: pointer; margin-bottom: 15px; flex-direction: row-reverse; justify-content: flex-end;" id="starRating">
-                <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span><span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
-            </div>
-            <textarea style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 10px; font-family: inherit; margin-bottom: 15px; background: var(--bg-card); color: var(--text-main);" placeholder="Write your review..."></textarea>
-            
-            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border-color);">
-                <h4 style="font-size: 14px; margin-bottom: 10px;">Quick Survey:</h4>
-                <div class="survey-row">
-                    <span style="font-size: 13px;">Cleanliness & Hygiene:</span>
-                    <div class="survey-options">
-                        <span class="survey-opt" onclick="this.classList.add('active')">Excellent</span>
-                        <span class="survey-opt" onclick="this.classList.add('active')">Good</span>
-                        <span class="survey-opt" onclick="this.classList.add('active')">Poor</span>
-                    </div>
-                </div>
-                <div class="survey-row">
-                    <span style="font-size: 13px;">Timing & Speed:</span>
-                    <div class="survey-options">
-                        <span class="survey-opt" onclick="this.classList.add('active')">Fast</span>
-                        <span class="survey-opt" onclick="this.classList.add('active')">Average</span>
-                        <span class="survey-opt" onclick="this.classList.add('active')">Slow</span>
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn" onclick="alert('Your review and survey have been submitted!')">Submit Review</button>
-        </div>
-    </div>
-
-    <!-- Chatbot -->
-    <div class="chatbot-btn" onclick="toggleChat()">💬</div>
-    <div class="chatbot-window" id="chatbotWindow">
-        <div class="chatbot-header">
-            <span>PiTrustee Assistant</span>
-            <span style="cursor: pointer;" onclick="toggleChat()">✕</span>
-        </div>
-        <div class="chatbot-messages" id="chatMessages">
-            <div class="chat-msg bot">Hello! 👋 I'm your PiTrustee assistant. What would you like to know?</div>
-            <div class="quick-replies">
-                <button class="quick-reply" onclick="quickAsk('What does this app do?')">What does this app do?</button>
-                <button class="quick-reply" onclick="quickAsk('How do I register a service?')">How to register?</button>
-                <button class="quick-reply" onclick="quickAsk('What are the fees?')">Fees?</button>
-                <button class="quick-reply" onclick="quickAsk('How does voting work?')">Voting?</button>
-                <button class="quick-reply" onclick="quickAsk('What are the tiers?')">Tiers?</button>
-                <button class="quick-reply" onclick="quickAsk('How do I contact support?')">Contact?</button>
-            </div>
-        </div>
-        <div class="chatbot-input">
-            <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatEnter(event)">
-            <button onclick="sendChatMessage()">Send</button>
+                
+                <button type="button" id="payBtn" class="btn" onclick="saveProviderData()" disabled style="opacity: 0.5; cursor: not-allowed;">Pay 1 Pi & Register</button>
+            </form>
         </div>
     </div>
 
     <script>
-        // Comprehensive hierarchical category data
-        const categoriesData = {
-            "Health & Medical": ["Doctors & Clinics", "General Practitioner", "Specialist", "Dentist", "Telemedicine", "Pharmacy", "Hospitals", "Mental Health", "Physical Therapy", "Laboratory"],
-            "Sports & Fitness": ["Fitness Centers", "Gym", "Yoga Studio", "CrossFit", "Personal Trainer", "Swimming Pool", "Martial Arts", "Sports Coaching", "Dance Studio"],
-            "Food & Dining": ["Restaurants", "Fine Dining", "Fast Food", "Cafes", "Coffee Shops", "Bakeries", "Catering", "Bars & Nightlife", "Food Trucks", "Ice Cream"],
-            "Travel & Hospitality": ["Hotels", "Flights", "Tours", "Travel Agencies", "Visa Services", "Vacation Rentals", "Hostels", "Resorts", "Car Rental"],
-            "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Public Transit", "Delivery/Courier", "Freight", "Moving Services", "Bike Sharing", "Airport Transfer"],
-            "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry", "Sports Equipment", "Books", "Toys", "Pet Supplies"],
-            "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Accounting", "Banking Services", "Money Transfer", "Tax Services"],
-            "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services", "Data Analytics", "AI Services"],
-            "Professional Services": ["Legal", "Consulting", "Marketing", "Translation", "Photography", "Architecture", "Engineering", "Event Planning"],
-            "Real Estate": ["Agents", "Property Management", "Short-term Rentals", "Commercial Real Estate", "Mortgage Services"],
-            "Education": ["Schools", "Tutoring", "Online Courses", "Language Schools", "Test Prep", "Music Lessons", "Vocational Training"],
-            "Entertainment & Events": ["Cinema", "Gaming", "Concerts", "Event Planning", "Ticket Sales", "Museums", "Nightclubs"],
-            "Home & Personal Services": ["Cleaning", "Repair & Maintenance", "Beauty & Salon", "Pet Care", "Plumbing", "Electrical", "Landscaping", "Moving"]
-        };
-
-        const locations = {
-            'MENA': { 'Iran': ['Tehran', 'Isfahan'], 'UAE': ['Dubai', 'Abu Dhabi'], 'Saudi Arabia': ['Riyadh', 'Jeddah'], 'Egypt': ['Cairo'], 'Turkey': ['Istanbul', 'Ankara'] },
-            'Africa': { 'Nigeria': ['Lagos', 'Abuja'], 'South Africa': ['Cape Town', 'Johannesburg'], 'Kenya': ['Nairobi'], 'Ghana': ['Accra'] },
-            'Europe': { 'Germany': ['Berlin', 'Munich'], 'UK': ['London', 'Manchester'], 'France': ['Paris'], 'Spain': ['Madrid', 'Barcelona'], 'Italy': ['Rome', 'Milan'] },
-            'North America': { 'USA': ['New York', 'Los Angeles', 'Chicago'], 'Canada': ['Toronto', 'Vancouver'], 'Mexico': ['Mexico City'] },
-            'Latin America': { 'Brazil': ['São Paulo', 'Rio'], 'Argentina': ['Buenos Aires'], 'Colombia': ['Bogotá'] },
-            'Asia': { 'China': ['Beijing', 'Shanghai'], 'India': ['Mumbai', 'Delhi'], 'Japan': ['Tokyo'], 'Indonesia': ['Jakarta'], 'Philippines': ['Manila'] },
-            'Oceania': { 'Australia': ['Sydney', 'Melbourne'], 'New Zealand': ['Auckland'] },
-            'Online': { 'Global': ['Online'] }
-        };
-
-        // Tab switching
+        // --- Tabs & Theme ---
         function switchTab(tabId, event) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
             if(event && event.target.tagName === 'BUTTON') event.target.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        function setTheme(theme) { document.body.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); }
+        setTheme(localStorage.getItem('theme') || 'system');
 
-        // Help sub-tabs
-        function switchHelpTab(tabId, event) {
-            document.querySelectorAll('.help-tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById('help-' + tabId).classList.add('active');
-            document.querySelectorAll('.help-tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-        }
+        // --- Standardized Geography Data ---
+        const standardLocations = {
+            "North America": ["United States", "Canada", "Mexico"],
+            "South America": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
+            "Europe": ["United Kingdom", "Germany", "France", "Spain", "Italy", "Netherlands", "Sweden", "Switzerland"],
+            "Asia": ["China", "India", "Japan", "Indonesia", "Philippines", "Vietnam", "Thailand", "South Korea", "Pakistan", "Iran", "Saudi Arabia", "UAE"],
+            "Africa": ["Nigeria", "South Africa", "Kenya", "Egypt", "Ghana", "Ethiopia"],
+            "Oceania": ["Australia", "New Zealand", "Fiji"]
+        };
 
-        // Theme
-        function setTheme(theme) {
-            if (theme === 'system') {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-            } else {
-                document.body.setAttribute('data-theme', theme);
-            }
-            localStorage.setItem('theme', theme);
-        }
-        const savedTheme = localStorage.getItem('theme') || 'system';
-        setTheme(savedTheme);
-
-        // Home filters
-        function updateHomeSubCats() {
-            const mainCat = document.getElementById('homeCatFilter').value;
-            const subCatSelect = document.getElementById('homeSubCatFilter');
-            subCatSelect.innerHTML = '<option value="All">All Subcategories</option>';
-            if (mainCat !== 'All' && categoriesData[mainCat]) {
-                categoriesData[mainCat].forEach(sub => {
-                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        function populateRegCountries(continent) {
+            const select = document.getElementById('regCountry');
+            select.innerHTML = '<option value="">Select Country...</option>';
+            if (continent && standardLocations[continent]) {
+                standardLocations[continent].forEach(country => {
+                    select.innerHTML += `<option value="${country}">${country}</option>`;
                 });
             }
         }
 
-        function filterHomeProviders() {
-            const searchText = document.getElementById('homeSearchInput').value.toLowerCase();
-            const cat = document.getElementById('homeCatFilter').value;
-            const subcat = document.getElementById('homeSubCatFilter').value;
-            document.querySelectorAll('#homeProviderList .provider-card').forEach(card => {
-                const name = card.getAttribute('data-name').toLowerCase();
-                const cardCat = card.getAttribute('data-cat');
-                const cardSub = card.getAttribute('data-subcat');
-                const matchesSearch = name.includes(searchText);
-                const matchesCat = (cat === 'All' || cardCat === cat);
-                const matchesSub = (subcat === 'All' || cardSub === subcat);
-                card.style.display = (matchesSearch && matchesCat && matchesSub) ? 'flex' : 'none';
-            });
-        }
-
-        // Services filters
-        function updateCountries() {
-            const region = document.getElementById('regionFilter').value;
-            const countrySelect = document.getElementById('countryFilter');
-            countrySelect.innerHTML = '<option value="All">All Countries</option>';
-            if (region !== 'All' && locations[region]) {
-                Object.keys(locations[region]).forEach(country => {
-                    countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
-                });
-            }
-            updateCities();
-        }
-
-        function updateCities() {
-            const region = document.getElementById('regionFilter').value;
-            const country = document.getElementById('countryFilter').value;
-            const citySelect = document.getElementById('cityFilter');
-            citySelect.innerHTML = '<option value="All">All Cities</option>';
-            if (region !== 'All' && country !== 'All' && locations[region][country]) {
-                locations[region][country].forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+        function populateFilterCountries(continent) {
+            const select = document.getElementById('countryFilter');
+            select.innerHTML = '<option value="All">All Countries</option>';
+            if (continent === 'All') {
+                for (let key in standardLocations) {
+                    standardLocations[key].forEach(country => {
+                        select.innerHTML += `<option value="${country}">${country}</option>`;
+                    });
+                }
+            } else if (standardLocations[continent]) {
+                standardLocations[continent].forEach(country => {
+                    select.innerHTML += `<option value="${country}">${country}</option>`;
                 });
             }
         }
 
-        function updateSubCategories() {
-            const mainCat = document.getElementById('categoryFilter').value;
-            const subCatSelect = document.getElementById('subCategoryFilter');
-            subCatSelect.innerHTML = '<option value="All">All Subcategories</option>';
-            if (mainCat !== 'All' && categoriesData[mainCat]) {
-                categoriesData[mainCat].forEach(sub => {
-                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-                });
-            }
+        function updatePhoneCode(country) {
+            const phoneCodes = {
+                "United States": "+1", "Canada": "+1", "Mexico": "+52",
+                "United Kingdom": "+44", "Germany": "+49", "France": "+33", "Spain": "+34", "Italy": "+39", "Netherlands": "+31", "Sweden": "+46", "Switzerland": "+41",
+                "China": "+86", "India": "+91", "Japan": "+81", "Indonesia": "+62", "Philippines": "+63", "Vietnam": "+84", "Thailand": "+66", "South Korea": "+82", "Pakistan": "+92", "Iran": "+98", "Saudi Arabia": "+966", "UAE": "+971",
+                "Nigeria": "+234", "South Africa": "+27", "Kenya": "+254", "Egypt": "+20", "Ghana": "+233", "Ethiopia": "+251",
+                "Brazil": "+55", "Argentina": "+54", "Colombia": "+57", "Chile": "+56", "Peru": "+51",
+                "Australia": "+61", "New Zealand": "+64", "Fiji": "+679"
+            };
+            document.getElementById('phoneCode').value = phoneCodes[country] || '';
         }
 
-        function filterProviders() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            const region = document.getElementById('regionFilter').value;
-            const country = document.getElementById('countryFilter').value;
-            const city = document.getElementById('cityFilter').value;
-            const cat = document.getElementById('categoryFilter').value;
-            const subcat = document.getElementById('subCategoryFilter').value;
-            document.querySelectorAll('#providerList .provider-card').forEach(card => {
-                const name = card.getAttribute('data-name').toLowerCase();
-                const cardCat = card.getAttribute('data-cat');
-                const cardSub = card.getAttribute('data-subcat');
-                const cardRegion = card.getAttribute('data-region');
-                const cardCountry = card.getAttribute('data-country');
-                const cardCity = card.getAttribute('data-city');
-                const m1 = name.includes(searchText);
-                const m2 = (cat === 'All' || cardCat === cat);
-                const m3 = (subcat === 'All' || cardSub === subcat);
-                const m4 = (region === 'All' || cardRegion === region);
-                const m5 = (country === 'All' || cardCountry === country);
-                const m6 = (city === 'All' || cardCity === city);
-                card.style.display = (m1 && m2 && m3 && m4 && m5 && m6) ? 'flex' : 'none';
-            });
-        }
+        // --- Dynamic Form Logic ---
+        const categorySubCats = {
+            "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy"],
+            "IT & Technology": ["App Development", "Web Design", "IT Support"],
+            "Food & Dining": ["Restaurant", "Cafe", "Fast Food"],
+            "Retail & Shopping": ["Electronics", "Fashion", "Groceries"]
+        };
 
-        // Register
-        function updateRegSubCategories() {
+        function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
-            const subGroup = document.getElementById('regSubCategoryGroup');
-            const subSelect = document.getElementById('regSubCategory');
-            const othersGroup = document.getElementById('regOthersGroup');
-            if (mainCat === 'Others') {
-                subGroup.style.display = 'none';
-                othersGroup.style.display = 'block';
-            } else if (mainCat && categoriesData[mainCat]) {
-                subGroup.style.display = 'block';
-                othersGroup.style.display = 'none';
-                subSelect.innerHTML = '<option value="">Select Sub Category...</option>';
-                categoriesData[mainCat].forEach(sub => {
-                    subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+            const subCatGroup = document.getElementById('subCatGroup');
+            const subCatSelect = document.getElementById('regSubCategory');
+            if (mainCat && categorySubCats[mainCat]) {
+                subCatGroup.style.display = 'block';
+                subCatSelect.innerHTML = '<option value="">Select...</option>';
+                categorySubCats[mainCat].forEach(sub => {
+                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                 });
             } else {
-                subGroup.style.display = 'none';
-                othersGroup.style.display = 'none';
+                subCatGroup.style.display = 'none';
             }
         }
 
@@ -884,87 +459,37 @@
             btn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
         }
 
-        function simulatePayment() {
-            alert('Pi Wallet connection simulated for 1 Pi payment.\nYour registration is pending admin approval.');
-            switchTab('admin', {target: document.querySelector('nav button:nth-child(5)')});
+        function saveProviderData() {
+            const data = {
+                name: document.getElementById('bizName').value,
+                category: document.getElementById('regMainCategory').value,
+                sub: document.getElementById('regSubCategory').value,
+                region: document.getElementById('regRegion').value,
+                country: document.getElementById('regCountry').value,
+                city: document.getElementById('regCity').value,
+                postal: document.getElementById('regPostalCode').value,
+                address: document.getElementById('regAddress').value,
+                phone: document.getElementById('phoneCode').value + ' ' + document.getElementById('regPhone').value,
+                website: document.getElementById('regWebsite').value
+            };
+            localStorage.setItem('piTrusteeProvider', JSON.stringify(data));
+            alert("Data saved locally! In a real scenario, this would trigger the Pi payment.");
         }
 
-        // Modal
-        function openModal(title, desc, address, phone, website) {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalDesc').innerText = desc;
-            document.getElementById('modalAddress').innerText = '📍 ' + (address || 'Not provided');
-            document.getElementById('modalPhone').innerText = '📞 ' + (phone || 'Not provided');
-            document.getElementById('modalWebsite').innerText = '🌐 ' + (website || 'Not provided');
-            document.getElementById('providerModal').style.display = 'flex';
+        // --- Pi SDK Integration ---
+        if (window.Pi) {
+            Pi.init({ version: "2.0", sandbox: true });
         }
-        function closeModal() { document.getElementById('providerModal').style.display = 'none'; }
-
-        // Rating
-        let currentRating = 0;
-        function setRating(rating) {
-            currentRating = rating;
-            document.querySelectorAll('#starRating span').forEach((star, index) => {
-                star.style.color = index < rating ? '#ffd700' : 'var(--border-color)';
-            });
+        
+        async function loginWithPi() {
+            if (window.Pi) {
+                try {
+                    const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+                    alert("Welcome, Pioneer: " + auth.user.username);
+                } catch (err) { alert("Login failed: " + err.message); }
+            } else { alert("Please open this app in Pi Browser."); }
         }
-
-        // Chatbot
-        function toggleChat() {
-            const w = document.getElementById('chatbotWindow');
-            w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function handleChatEnter(e) {
-            if (e.key === 'Enter') sendChatMessage();
-        }
-
-        function quickAsk(text) {
-            document.getElementById('chatInput').value = text;
-            sendChatMessage();
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-            const messages = document.getElementById('chatMessages');
-            messages.innerHTML += `<div class="chat-msg user">${text}</div>`;
-            input.value = '';
-            messages.scrollTop = messages.scrollHeight;
-
-            setTimeout(() => {
-                let reply = "I'm not sure I understood that. Try asking: 'What does this app do?', 'How do I register?', 'What are the fees?', or 'How does voting work?'";
-                const t = text.toLowerCase();
-
-                if (t.includes('what') && (t.includes('app') || t.includes('do') || t.includes('purpose'))) {
-                    reply = "PiTrustee is a decentralized trust and reputation system for Pi Network. Users rate service providers (like restaurants, doctors, gyms) using weighted votes based on their Tier. It's the FIRST DAO project on Pi, where the community — not a central authority — governs trust.";
-                } else if (t.includes('register') || t.includes('sign up') || t.includes('add service')) {
-                    reply = "To register: go to the 'Register' tab, fill in your service details (name, category, location, contact), and pay the 1 Pi one-time fee. Your listing will be pending admin approval, usually reviewed within 24-48 hours.";
-                } else if (t.includes('fee') || t.includes('cost') || t.includes('price') || t.includes('pay')) {
-                    reply = "Fees: Registration is 1 Pi (one-time). Optional upgrades: Pro (5 Pi/month) for extra features, and Featured (10 Pi/month) to appear at the top of search results. Basic listing is free after registration.";
-                } else if (t.includes('vote') || t.includes('review') || t.includes('rate')) {
-                    reply = "To vote: open any provider's details and select 1-5 stars. Your vote weight depends on your Tier: Tier 1 (weight 1), Tier 2 (weight 3), Tier 3 (weight 10), Tier 4 (weight 50). You can vote once every 7 days per provider.";
-                } else if (t.includes('tier')) {
-                    reply = "4 Tiers: Tier 1 (KYC only, weight 1), Tier 2 (5+ transactions, weight 3), Tier 3 (20+ transactions + 1000+ Pi, weight 10), Tier 4 (Community Validator, weight 50). Tiers upgrade automatically based on blockchain activity.";
-                } else if (t.includes('contact') || t.includes('support') || t.includes('help') || t.includes('reach')) {
-                    reply = "You can contact the developer on Telegram: @MainHadi0011. We respond within 24-48 hours. You can also check the 'Help > Contact' section in the app.";
-                } else if (t.includes('dao') || t.includes('decentral') || t.includes('blockchain')) {
-                    reply = "PiTrustee operates as a DAO — Decentralized Autonomous Organization. All votes and reviews are recorded on the Pi blockchain. The community governs trust, not a central entity. Future rule changes will be voted by Pioneers.";
-                } else if (t.includes('hello') || t.includes('hi') || t.includes('hey')) {
-                    reply = "Hello! 👋 How can I help you with PiTrustee today? You can ask about registration, fees, voting, tiers, or contact information.";
-                } else if (t.includes('who') || t.includes('author') || t.includes('developer')) {
-                    reply = "PiTrustee is independently developed by a Pi Network Pioneer. Contact: @MainHadi0011 on Telegram. The mission is to create real utility for Pi and give the community a tool for verifiable trust.";
-                } else if (t.includes('language') || t.includes('persian') || t.includes('farsi') || t.includes('chinese')) {
-                    reply = "PiTrustee is currently in English (BETA). Multi-language support (Persian, Chinese, Indonesian, Hindi, Russian, Arabic, Thai, Korean, Filipino) will be added in upcoming updates.";
-                } else if (t.includes('version') || t.includes('beta')) {
-                    reply = "Current version: v1.0.0-BETA. PiTrustee is in active development. All payments are simulated in this BETA phase. Real Pi SDK integration will be added for Mainnet deployment.";
-                }
-
-                messages.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
-                messages.scrollTop = messages.scrollHeight;
-            }, 600);
-        }
+        function onIncompletePaymentFound(payment) { console.log(payment); }
     </script>
 </body>
 </html>
