@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PiTrustee | Decentralized Trust</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script src="data.js"></script>
     <style>
         :root {
             --bg-body: #f0f4f8; --bg-card: #ffffff; --text-main: #2d3748; --text-muted: #718096;
             --border-color: #e2e8f0; --primary: #1A73E8; --primary-hover: #1557b0; --shadow: 0 4px 15px rgba(0,0,0,0.05);
-            --success: #38a169; --danger: #e53e3e; --warning: #d69e2e;
+            --success: #38a169; --danger: #e53e3e; --warning: #d69e2e; --purple: #5c2d91;
         }
         [data-theme="dark"] {
             --bg-body: #1a202c; --bg-card: #2d3748; --text-main: #f7fafc; --text-muted: #a0aec0;
@@ -49,16 +48,30 @@
         .dao-tags { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .dao-tags span { background: rgba(255,255,255,0.15); padding: 6px 15px; border-radius: 30px; font-size: 13px; font-weight: 600; }
 
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .cat-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow); }
+        .cat-item:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .cat-icon { font-size: 24px; margin-bottom: 5px; display: block; }
+        .cat-name { font-size: 11px; font-weight: 700; color: var(--text-main); }
+
         .search-section { background: var(--bg-card); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 25px; display: flex; gap: 15px; flex-wrap: wrap; border: 1px solid var(--border-color); }
-        .search-bar { flex: 1; min-width: 200px; }
-        .search-bar input, .filter-dropdown { width: 100%; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
-        .search-bar input:focus, .filter-dropdown:focus { border-color: var(--primary); }
-        .filter-dropdown { min-width: 120px; cursor: pointer; font-weight: 600; }
+        .search-bar { flex: 1; min-width: 200px; position: relative; }
+        .search-bar input { width: 100%; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
+        .search-bar input:focus { border-color: var(--primary); }
+        .btn-adv { background: var(--purple); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; }
+        
+        .toggle-switch { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: var(--text-main); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(26px); }
 
         .provider-card { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: 0.3s; display: flex; gap: 15px; align-items: flex-start; }
         .provider-card:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
         .provider-card.featured { border: 2px solid #ffd700; background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent); }
-        .provider-icon { width: 60px; height: 60px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), #0d47a1); display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; font-weight: 800; flex-shrink: 0; }
+        .provider-img { width: 70px; height: 70px; border-radius: 12px; background: #e2e8f0; object-fit: cover; flex-shrink: 0; }
         .provider-info { flex: 1; }
         .provider-name { font-size: 18px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .featured-tag { font-size: 10px; background: #ffd700; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
@@ -69,10 +82,8 @@
         .meta-tag { background: var(--bg-body); padding: 3px 8px; border-radius: 5px; font-size: 11px; color: var(--text-muted); }
         
         .action-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; font-family: inherit;}
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; font-family: inherit; text-decoration: none; display: inline-block; text-align: center;}
         .btn:hover { background-color: var(--primary-hover); }
-        .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-outline:hover { background-color: rgba(26, 115, 232, 0.1); }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
 
         .form-group { margin-bottom: 20px; }
@@ -80,16 +91,10 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 10px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
         
-        .map-placeholder { background: var(--bg-body); height: 150px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-weight: bold; border: 2px dashed var(--border-color); margin-top: 10px; cursor: pointer; }
-        .map-placeholder:hover { border-color: var(--primary); color: var(--primary); }
-        
-        .upload-box { border: 2px dashed var(--border-color); padding: 20px; text-align: center; border-radius: 10px; color: var(--text-muted); cursor: pointer; background: var(--bg-body); }
-        .upload-box:hover { border-color: var(--primary); color: var(--primary); }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; background: var(--bg-body); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .checkbox-group input { margin-top: 4px; width: 18px; height: 18px; }
+        .checkbox-group label { font-size: 13px; color: var(--text-muted); line-height: 1.5; cursor: pointer; }
 
-        .admin-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
-        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px;}
-        .admin-table th { background: var(--bg-body); font-weight: 800; color: var(--text-main); }
-        
         .help-box { background: var(--bg-card); padding: 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 5px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
         .help-box h3 { color: var(--primary); margin-bottom: 10px; }
         .help-tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid var(--border-color); }
@@ -97,36 +102,11 @@
         .help-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .help-tab-content { display: none; animation: fadeIn 0.3s ease; }
         .help-tab-content.active { display: block; }
-        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        .info-label { color: var(--text-muted); font-weight: 600; }
-        .info-value { color: var(--text-main); font-weight: 700; }
-        .contact-link { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; margin-top: 10px; }
-
+        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal-content { background: var(--bg-card); width: 90%; max-width: 600px; border-radius: 20px; padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; color: var(--text-main); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .close-btn { position: absolute; top: 15px; right: 15px; background: var(--bg-body); border: none; font-size: 20px; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .close-btn:hover { background: var(--danger); color: white; }
-        
-        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; background: var(--bg-body); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; }
-        .checkbox-group input { margin-top: 4px; width: 18px; height: 18px; }
-        .checkbox-group label { font-size: 13px; color: var(--text-muted); line-height: 1.5; cursor: pointer; }
-
-        .review-item { background: var(--bg-body); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
-        .review-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
-        .reviewer-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
-        .review-stars { color: #ffd700; font-size: 14px; }
-        .review-text { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
-        .review-reply { background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px; margin-top: 8px; border-left: 3px solid var(--success); }
-        
-        .survey-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border-color); }
-        .survey-options { display: flex; gap: 5px; }
-        .survey-opt { background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        .survey-opt:hover, .survey-opt.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--bg-body); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
-        .stat-value { font-size: 24px; font-weight: 800; color: var(--primary); }
-        .stat-label { font-size: 12px; color: var(--text-muted); }
 
         .chatbot-btn { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; transition: 0.3s; }
         .chatbot-btn:hover { transform: scale(1.1); }
@@ -136,16 +116,14 @@
         .chat-msg { background: var(--bg-body); padding: 10px; border-radius: 10px; font-size: 14px; max-width: 85%; }
         .chat-msg.user { background: rgba(26, 115, 232, 0.1); align-self: flex-end; border-right: 3px solid var(--primary); }
         .chat-msg.bot { align-self: flex-start; border-left: 3px solid var(--success); }
-        .quick-replies { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-        .quick-reply { background: var(--bg-card); border: 1px solid var(--primary); color: var(--primary); padding: 6px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; font-family: inherit; }
-        .quick-reply:hover { background: var(--primary); color: white; }
         .chatbot-input { display: flex; padding: 10px; border-top: 1px solid var(--border-color); }
         .chatbot-input input { flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; font-family: inherit; background: var(--bg-body); color: var(--text-main); }
         .chatbot-input button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 20px; margin-left: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body data-theme="light">
-        <header>
+
+    <header>
         <div class="logo" onclick="switchTab('home', event)">
             <img src="Logo-PiTrustee.png" alt="PiTrustee Logo">
             <div class="logo-text">
@@ -188,89 +166,79 @@
                 </div>
             </div>
 
-            <div class="search-section">
-                <div class="search-bar">
-                    <input type="text" id="homeSearchInput" placeholder="🔍 Search services..." onkeyup="filterHomeProviders()">
-                </div>
-                <select class="filter-dropdown" id="homeCatFilter" onchange="updateHomeSubCats(); filterHomeProviders()">
-                    <option value="All">All Categories</option>
-                    <option value="Health & Medical">Health & Medical</option>
-                    <option value="IT & Technology">IT & Technology</option>
-                    <option value="Food & Dining">Food & Dining</option>
-                    <option value="Retail & Shopping">Retail & Shopping</option>
-                </select>
-                <select class="filter-dropdown" id="homeSubCatFilter" onchange="filterHomeProviders()">
-                    <option value="All">All Subcategories</option>
-                </select>
+            <!-- Category Grid -->
+            <div class="category-grid" id="homeCategoryGrid">
+                <!-- Populated dynamically by JS -->
             </div>
 
-            <h2 style="margin-bottom: 15px; color: var(--primary);">Top Rated Providers</h2>
-            <div id="homeProviderList">
-                <div class="provider-card featured" data-cat="Health & Medical" data-subcat="Doctors & Clinics" data-name="pi health clinic">
-                    <div class="provider-icon">🏥</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Pi Health Clinic ✅ <span class="featured-tag">FEATURED</span></div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.9 <span style="color: var(--text-muted); font-weight: 400;">(124 reviews)</span></span>
-                            <span>•</span>
-                            <span>Health & Medical • Doctors & Clinics</span>
-                        </div>
-                        <div class="provider-desc">General practice, specialists, and telemedicine consultations.</div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 North America, USA, New York</span>
-                            <span class="meta-tag">📞 +1-212-555-0199</span>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn btn-sm" onclick="openModal('Pi Health Clinic', 'General practice...', 'North America, USA, New York', '+1-212-555-0199', 'pihealth.com')">View Details</button>
-                        </div>
-                    </div>
+            <div class="search-section">
+                <div class="search-bar">
+                    <input type="text" id="homeSearchInput" placeholder="🔍 Search by store name..." onkeyup="filterProviders('home')">
                 </div>
+                <button class="btn btn-adv" onclick="switchTab('services', event)">Advanced Search</button>
+                <div class="toggle-switch">
+                    <span>Global</span>
+                    <label class="switch">
+                        <input type="checkbox" id="homeGlobalToggle" onchange="filterProviders('home')">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Local</span>
+                </div>
+            </div>
+
+            <h2 style="margin-bottom: 15px; color: var(--primary);">Featured Providers</h2>
+            <div id="homeFeaturedList">
+                <!-- Populated dynamically -->
+            </div>
+
+            <h2 style="margin-bottom: 15px; color: var(--primary); margin-top: 30px;">Top Rated</h2>
+            <div id="homeTopRatedList">
+                <!-- Populated dynamically -->
+            </div>
+
+            <h2 style="margin-bottom: 15px; color: var(--primary); margin-top: 30px;">New Arrivals</h2>
+            <div id="homeNewList">
+                <!-- Populated dynamically -->
             </div>
         </div>
 
         <!-- SERVICES TAB -->
         <div id="tab-services" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">All Services</h2>
-            <div class="search-section">
-                <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="Search provider name..." onkeyup="filterProviders()">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Advanced Search</h2>
+            <div class="search-section" style="flex-direction: column;">
+                <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
+                    <div class="search-bar" style="flex: 1;">
+                        <input type="text" id="serviceSearchInput" placeholder="Search by name..." onkeyup="filterProviders('services')">
+                    </div>
+                    <select class="form-group" id="filterContinent" onchange="populateFilterCountries(this.value); filterProviders('services')" style="margin-bottom: 0; width: auto;">
+                        <option value="All">All Continents</option>
+                        <option value="North America">North America</option>
+                        <option value="South America">South America</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Asia">Asia</option>
+                        <option value="Africa">Africa</option>
+                        <option value="Oceania">Oceania</option>
+                    </select>
+                    <select class="form-group" id="filterCountry" onchange="filterProviders('services')" style="margin-bottom: 0; width: auto;">
+                        <option value="All">All Countries</option>
+                    </select>
+                    <select class="form-group" id="filterCategory" onchange="updateSubCategories(); filterProviders('services')" style="margin-bottom: 0; width: auto;">
+                        <option value="All">All Categories</option>
+                    </select>
+                    <select class="form-group" id="filterSubCategory" onchange="filterProviders('services')" style="margin-bottom: 0; width: auto;">
+                        <option value="All">All Subcategories</option>
+                    </select>
+                    <select class="form-group" id="filterSort" onchange="filterProviders('services')" style="margin-bottom: 0; width: auto;">
+                        <option value="rating">Sort by: Highest Rating</option>
+                        <option value="reviews">Sort by: Most Reviews</option>
+                        <option value="newest">Sort by: Newest</option>
+                        <option value="nearest">Sort by: Nearest</option>
+                    </select>
                 </div>
-                <select class="filter-dropdown" id="regionFilter" onchange="populateFilterCountries(this.value); filterProviders()">
-                    <option value="All">All Regions</option>
-                    <option value="North America">North America</option>
-                    <option value="Europe">Europe</option>
-                    <option value="Asia">Asia</option>
-                    <option value="Africa">Africa</option>
-                    <option value="South America">South America</option>
-                    <option value="Oceania">Oceania</option>
-                </select>
-                <select class="filter-dropdown" id="countryFilter" onchange="filterProviders()">
-                    <option value="All">All Countries</option>
-                </select>
-                <select class="filter-dropdown" id="categoryFilter" onchange="updateSubCategories(); filterProviders()">
-                    <option value="All">All Categories</option>
-                    <option value="Health & Medical">Health & Medical</option>
-                    <option value="IT & Technology">IT & Technology</option>
-                </select>
-                <select class="filter-dropdown" id="subCategoryFilter" onchange="filterProviders()">
-                    <option value="All">All Subcategories</option>
-                </select>
             </div>
             
-            <div id="providerList">
-                 <div class="provider-card" data-cat="Health & Medical" data-subcat="Doctors & Clinics" data-name="pi health clinic" data-region="North America" data-country="United States" data-city="New York">
-                    <div class="provider-icon">🏥</div>
-                    <div class="provider-info">
-                        <div class="provider-name">Pi Health Clinic</div>
-                        <div class="provider-meta">
-                            <span class="provider-rating-inline">⭐ 4.9 <span style="color: var(--text-muted); font-weight: 400;">(124 reviews)</span></span>
-                        </div>
-                        <div class="provider-meta">
-                            <span class="meta-tag">📍 North America, USA, New York</span>
-                        </div>
-                        <button class="btn btn-sm" style="margin-top: 8px;" onclick="openModal('Pi Health Clinic', 'Details...', 'North America, USA, New York', '+1-212-555-0199', 'pihealth.com')">View Details</button>
-                    </div>
-                </div>
+            <div id="servicesProviderList">
+                <!-- Populated dynamically -->
             </div>
         </div>
 
@@ -280,26 +248,60 @@
             <form id="providerForm" style="background: var(--bg-card); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
                 
                 <h3 style="color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">1. Business Identity</h3>
-                <div class="form-group">
-                    <label>Business Name</label>
-                    <input type="text" id="bizName" required placeholder="e.g., Pi Digital Market">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Business Name</label><input type="text" id="bizName" required placeholder="e.g., Pi Digital Market"></div>
+                    <div class="form-group"><label>Year Established</label><input type="number" id="bizYear" min="1900" max="2026" placeholder="2020"></div>
                 </div>
-                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Company Size</label>
+                        <select id="bizSize">
+                            <option value="Freelancer">Freelancer</option>
+                            <option value="2-10">2-10 Employees</option>
+                            <option value="11-50">11-50 Employees</option>
+                            <option value="50+">50+ Employees</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Tagline</label><input type="text" id="bizTagline" placeholder="Short intro..."></div>
+                </div>
+
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Service Details</h3>
-                <div class="form-group">
-                    <label>Main Category</label>
-                    <select id="regMainCategory" onchange="handleCategoryChange()" required>
-                        <option value="">Select Main Category...</option>
-                        <option value="Health & Medical">Health & Medical</option>
-                        <option value="IT & Technology">IT & Technology</option>
-                        <option value="Food & Dining">Food & Dining</option>
-                        <option value="Retail & Shopping">Retail & Shopping</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Main Category</label>
+                        <select id="regMainCategory" onchange="handleCategoryChange()" required>
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="subCatGroup" style="display: none;">
+                        <label>Sub-Category</label>
+                        <select id="regSubCategory"><option value="">Select...</option></select>
+                    </div>
                 </div>
                 
-                <div class="form-group" id="subCatGroup" style="display: none;">
-                    <label>Sub-Category</label>
-                    <select id="regSubCategory"><option value="">Select Sub-Category...</option></select>
+                <div id="dynamicFields" style="display: none; background: var(--bg-body); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: var(--primary);">Specific Details for <span id="dynCatName"></span>:</p>
+                    <div id="dynFieldsContent"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Service Mode</label>
+                        <select id="regServiceMode">
+                            <option value="Online">Online Only</option>
+                            <option value="In-store">In-store / On-site</option>
+                            <option value="Both">Both</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fulfillment</label>
+                        <select id="regFulfillment">
+                            <option value="Delivery">Delivery</option>
+                            <option value="Pickup">Pickup / In-store</option>
+                            <option value="On-site">On-site Service</option>
+                            <option value="Digital">Digital Delivery</option>
+                        </select>
+                    </div>
                 </div>
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
@@ -308,12 +310,6 @@
                         <label>Continent</label>
                         <select id="regRegion" onchange="populateRegCountries(this.value)">
                             <option value="">Select Continent...</option>
-                            <option value="North America">North America</option>
-                            <option value="South America">South America</option>
-                            <option value="Europe">Europe</option>
-                            <option value="Asia">Asia</option>
-                            <option value="Africa">Africa</option>
-                            <option value="Oceania">Oceania</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -325,20 +321,11 @@
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>City / State</label>
-                        <input type="text" id="regCity" placeholder="e.g., New York">
-                    </div>
-                    <div class="form-group">
-                        <label>Postal Code</label>
-                        <input type="text" id="regPostalCode" placeholder="e.g., 10001">
-                    </div>
+                    <div class="form-group"><label>City</label><input type="text" id="regCity" placeholder="e.g., New York"></div>
+                    <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>Full Address</label>
-                    <input type="text" id="regAddress" placeholder="123 Main St...">
-                </div>
+                <div class="form-group"><label>Full Address</label><input type="text" id="regAddress" placeholder="123 Main St..."></div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
@@ -348,11 +335,23 @@
                             <input type="text" id="regPhone" placeholder="234 567 890" style="flex: 1;">
                         </div>
                     </div>
+                    <div class="form-group"><label>Website</label><input type="text" id="regWebsite" placeholder="www.example.com"></div>
+                </div>
+
+                <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">4. Operations & Legal</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Working Hours</label><input type="text" id="regHours" placeholder="9 AM - 9 PM"></div>
                     <div class="form-group">
-                        <label>Website (Optional)</label>
-                        <input type="text" id="regWebsite" placeholder="www.example.com">
+                        <label>Payment Methods</label>
+                        <select id="regPayment">
+                            <option value="Pi Only">Pi Only</option>
+                            <option value="Pi & Fiat">Pi & Fiat</option>
+                            <option value="Pi & Card">Pi & Credit Card</option>
+                        </select>
                     </div>
                 </div>
+                
+                <div class="form-group"><label>Pi Wallet Address</label><input type="text" id="regPiWallet" placeholder="G..."></div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="termsCheckbox" onchange="togglePaymentButton()">
@@ -368,36 +367,207 @@
                 <button type="button" id="payBtn" class="btn" onclick="saveProviderData()" disabled style="opacity: 0.5; cursor: not-allowed;">Pay 1 Pi & Register</button>
             </form>
         </div>
+
+        <!-- MERCHANT CONSOLE TAB -->
+        <div id="tab-merchant" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Merchant Console</h2>
+            <div id="merchantContent">
+                <p style="text-align: center; color: var(--text-muted); margin-top: 50px;">Please Login and Register a business to view your console.</p>
+            </div>
+        </div>
+
+        <!-- ADMIN TAB -->
+        <div id="tab-admin" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Admin Panel</h2>
+            <div class="help-tabs" style="border-bottom: none; margin-bottom: 10px;">
+                <button class="help-tab-btn active" onclick="switchAdminTab('pending', event)">Pending Approvals</button>
+                <button class="help-tab-btn" onclick="switchAdminTab('reports', event)">Reported Reviews</button>
+                <button class="help-tab-btn" onclick="switchAdminTab('finance', event)">Finance & Tx</button>
+            </div>
+            <div id="adminContent" style="background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <!-- Dynamic Admin Content -->
+            </div>
+        </div>
+
+        <!-- HELP TAB -->
+        <div id="tab-help" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Help & Information</h2>
+            <div class="help-tabs">
+                <button class="help-tab-btn active" onclick="switchHelpTab('about', event)">About</button>
+                <button class="help-tab-btn" onclick="switchHelpTab('howto', event)">How It Works</button>
+                <button class="help-tab-btn" onclick="switchHelpTab('rules', event)">Rules</button>
+                <button class="help-tab-btn" onclick="switchHelpTab('faq', event)">FAQ</button>
+                <button class="help-tab-btn" onclick="switchHelpTab('contact', event)">Contact</button>
+            </div>
+            
+            <div class="help-tab-content active" id="help-about">
+                <div class="help-box">
+                    <h3>🌟 About PiTrustee</h3>
+                    <p>PiTrustee is the first decentralized trust and reputation system built for the Pi Network ecosystem.</p>
+                    <div style="margin-top: 15px; display: flex; justify-content: space-between;"><span>Version</span><strong>v1.0.0-BETA</strong></div>
+                </div>
+            </div>
+            <div class="help-tab-content" id="help-howto">
+                <div class="help-box">
+                    <h3>🛠️ How It Works</h3>
+                    <p><strong>For Pioneers:</strong> Search for services, read reviews, and vote using your Pi account.</p>
+                    <p style="margin-top: 10px;"><strong>For Providers:</strong> Register your business, pay 1 Pi, and get verified by admin.</p>
+                </div>
+            </div>
+            <div class="help-tab-content" id="help-rules">
+                <div class="help-box">
+                    <h3>📜 Review Rules</h3>
+                    <p>1. Reviews must be based on real experiences.</p>
+                    <p>2. No spam, offensive language, or external links.</p>
+                    <p>3. No conflicts of interest (reviewing your own business).</p>
+                </div>
+            </div>
+            <div class="help-tab-content" id="help-faq">
+                <div class="help-box">
+                    <h3>❓ FAQ</h3>
+                    <p><strong>Q: How do I pay 1 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p>
+                    <p style="margin-top: 10px;"><strong>Q: Why was my review hidden?</strong><br>A: It may have triggered our automated spam filter.</p>
+                </div>
+            </div>
+            <div class="help-tab-content" id="help-contact">
+                <div class="help-box">
+                    <h3>📞 Contact Us</h3>
+                    <p>For support, bug reports, or inquiries:</p>
+                    <a href="https://t.me/MainHadi0011" target="_blank" style="display: inline-block; background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; margin-top: 10px; font-weight: bold;">💬 @MainHadi0011 on Telegram</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script>
+    <!-- MODAL FOR PROVIDER DETAILS & REVIEWS -->
+    <div class="modal-overlay" id="providerModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">✕</button>
+            <div id="modalHeader">
+                <h2 id="modalTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 5px;">Provider Name</h2>
+                <div id="modalRating" style="color: var(--warning); font-weight: bold; margin-bottom: 15px; font-size: 18px;">⭐⭐⭐⭐⭐ 5.0 (10 reviews)</div>
+            </div>
+            <div id="modalDetails" style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">
+                <!-- Dynamic Details -->
+            </div>
+            
+            <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--primary);">User Reviews</h3>
+            <div id="modalReviewsList">
+                <!-- Dynamic Reviews -->
+            </div>
+
+            <div style="margin-top: 20px; background: var(--bg-body); padding: 15px; border-radius: 10px;">
+                <h4 style="margin-bottom: 10px;">Write a Review</h4>
+                <div style="display: flex; gap: 5px; font-size: 24px; cursor: pointer; margin-bottom: 10px; flex-direction: row-reverse; justify-content: flex-end;" id="starRating">
+                    <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span><span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
+                </div>
+                <textarea id="reviewText" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; margin-bottom: 10px; background: var(--bg-card); color: var(--text-main);" placeholder="Share your experience (min 10 chars)..."></textarea>
+                <div class="checkbox-group" style="margin-bottom: 10px; padding: 10px;">
+                    <input type="checkbox" id="reviewRulesCheck">
+                    <label for="reviewRulesCheck" style="font-size: 11px;">I agree to the review rules (no spam, real experience).</label>
+                </div>
+                <button class="btn" onclick="submitReview()" style="width: 100%;">Submit Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHATBOT (Floating) -->
+    <div class="chatbot-btn" onclick="toggleChat()">💬</div>
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <span>PiTrustee Assistant</span>
+            <span style="cursor: pointer;" onclick="toggleChat()">✕</span>
+        </div>
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="chat-msg bot">Hello! I'm your assistant. Ask me about registration, fees, or how to vote!</div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatEnter(event)">
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+    </div>
+        <script>
         // --- Tabs & Theme ---
         function switchTab(tabId, event) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
             if(event && event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        function setTheme(theme) { document.body.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); }
+        function setTheme(theme) { 
+            document.body.setAttribute('data-theme', theme); 
+            localStorage.setItem('theme', theme); 
+        }
         setTheme(localStorage.getItem('theme') || 'system');
 
-        // --- Standardized Geography Data ---
-                // --- Unified Geography Logic (Connecting to data.js) ---
-        
+        // --- Initialization & Data Source ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateCategoryGrid();
+            populateCategoryDropdowns();
+            populateContinents();
+            loadMockProviders();
+        });
+
+        function populateCategoryGrid() {
+            const grid = document.getElementById('homeCategoryGrid');
+            const icons = {
+                "Food & Dining": "🍔", "Retail & Shopping": "🛍️", "Health & Medical": "🏥",
+                "Professional Services": "💼", "IT & Technology": "💻", "Finance & Exchange": "💱",
+                "Travel & Hospitality": "✈️", "Transportation": "🚕", "Real Estate": "🏠",
+                "Education": "🎓", "Home & Personal Services": "🔧", "Sports & Fitness": "🏋️",
+                "Entertainment & Events": "🎬", "Beauty & Wellness": "💆", "Automotive": "🚗", "Others": "📦"
+            };
+            if (window.categorySubCats) {
+                for (let cat in icons) {
+                    if(categorySubCats[cat]) {
+                        grid.innerHTML += `
+                            <div class="cat-item" onclick="selectCategoryAndSearch('${cat}')">
+                                <span class="cat-icon">${icons[cat]}</span>
+                                <span class="cat-name">${cat.split('&')[0]}</span>
+                            </div>`;
+                    }
+                }
+            }
+        }
+
+        function populateCategoryDropdowns() {
+            const regCat = document.getElementById('regMainCategory');
+            const filterCat = document.getElementById('filterCategory');
+            if (window.categorySubCats) {
+                for (let cat in categorySubCats) {
+                    regCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+                    filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+                }
+            }
+        }
+
+        function populateContinents() {
+            const regRegion = document.getElementById('regRegion');
+            const filterContinent = document.getElementById('filterContinent');
+            if (window.globalContinents) {
+                globalContinents.forEach(c => {
+                    regRegion.innerHTML += `<option value="${c}">${c}</option>`;
+                    filterContinent.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+            }
+        }
+
+        // --- Geography Logic ---
         function populateRegCountries(continent) {
             const select = document.getElementById('regCountry');
             select.innerHTML = '<option value="">Select Country...</option>';
-            if (!continent) return;
-            
+            if (!window.globalCountriesData || !continent) return;
             globalCountriesData.filter(c => c.continent === continent).forEach(country => {
                 select.innerHTML += `<option value="${country.name}">${country.name}</option>`;
             });
         }
 
         function populateFilterCountries(continent) {
-            const select = document.getElementById('countryFilter');
+            const select = document.getElementById('filterCountry');
             select.innerHTML = '<option value="All">All Countries</option>';
-            
+            if (!window.globalCountriesData) return;
             if (continent === 'All') {
                 globalCountriesData.forEach(country => {
                     select.innerHTML += `<option value="${country.name}">${country.name}</option>`;
@@ -410,29 +580,43 @@
         }
 
         function updatePhoneCode(countryName) {
+            if (!window.globalCountriesData) return;
             const country = globalCountriesData.find(c => c.name === countryName);
             document.getElementById('phoneCode').value = country ? country.phone : '';
         }
-        // --- Dynamic Form Logic ---
-        const categorySubCats = {
-            "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy"],
-            "IT & Technology": ["App Development", "Web Design", "IT Support"],
-            "Food & Dining": ["Restaurant", "Cafe", "Fast Food"],
-            "Retail & Shopping": ["Electronics", "Fashion", "Groceries"]
-        };
 
+        // --- Form Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
             const subCatGroup = document.getElementById('subCatGroup');
             const subCatSelect = document.getElementById('regSubCategory');
-            if (mainCat && categorySubCats[mainCat]) {
+            const dynFields = document.getElementById('dynamicFields');
+            const dynContent = document.getElementById('dynFieldsContent');
+            const dynCatName = document.getElementById('dynCatName');
+
+            if (mainCat && window.categorySubCats && categorySubCats[mainCat]) {
                 subCatGroup.style.display = 'block';
                 subCatSelect.innerHTML = '<option value="">Select...</option>';
                 categorySubCats[mainCat].forEach(sub => {
                     subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                 });
+                dynFields.style.display = 'block';
+                dynCatName.innerText = mainCat;
+                dynContent.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Standard fields apply for this category.</p>`;
             } else {
                 subCatGroup.style.display = 'none';
+                dynFields.style.display = 'none';
+            }
+        }
+
+        function updateSubCategories() {
+            const mainCat = document.getElementById('filterCategory').value;
+            const subCatSelect = document.getElementById('filterSubCategory');
+            subCatSelect.innerHTML = '<option value="All">All Subcategories</option>';
+            if (mainCat !== 'All' && window.categorySubCats && categorySubCats[mainCat]) {
+                categorySubCats[mainCat].forEach(sub => {
+                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                });
             }
         }
 
@@ -452,20 +636,210 @@
                 region: document.getElementById('regRegion').value,
                 country: document.getElementById('regCountry').value,
                 city: document.getElementById('regCity').value,
-                postal: document.getElementById('regPostalCode').value,
-                address: document.getElementById('regAddress').value,
                 phone: document.getElementById('phoneCode').value + ' ' + document.getElementById('regPhone').value,
-                website: document.getElementById('regWebsite').value
+                rating: 0, reviews: 0, isFeatured: false
             };
             localStorage.setItem('piTrusteeProvider', JSON.stringify(data));
-            alert("Data saved locally! In a real scenario, this would trigger the Pi payment.");
+            alert("Registration Data Saved! Triggering Pi Payment...");
         }
 
-        // --- Pi SDK Integration ---
-        if (window.Pi) {
-            Pi.init({ version: "2.0", sandbox: true });
+        // --- Search & Filter Logic ---
+        const mockProviders = [
+            { id: 1, name: "Pi Health Clinic", cat: "Health & Medical", sub: "Doctors & Clinics", continent: "North America", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, phone: "+1 212 555 0199", desc: "General practice, specialists, and telemedicine." },
+            { id: 2, name: "PiDev Solutions", cat: "IT & Technology", sub: "App Development", continent: "Europe", country: "United Kingdom", city: "London", rating: 5.0, reviews: 89, featured: false, phone: "+44 20 7946 0958", desc: "Smart contract development and dApp creation." },
+            { id: 3, name: "PiMart Store", cat: "Retail & Shopping", sub: "Electronics", continent: "Asia", country: "Iran", city: "Tehran", rating: 4.5, reviews: 45, featured: true, phone: "+98 21 1234 5678", desc: "Local goods marketplace accepting Pi payments." },
+            { id: 4, name: "Fit Pi Gym", cat: "Sports & Fitness", sub: "Gym", continent: "North America", country: "United States", city: "Los Angeles", rating: 4.2, reviews: 67, featured: false, phone: "+1 310 555 1234", desc: "Modern gym with crossfit and yoga." }
+        ];
+
+        function loadMockProviders() {
+            renderProviders('homeFeaturedList', mockProviders.filter(p => p.featured));
+            renderProviders('homeTopRatedList', mockProviders.sort((a,b) => b.rating - a.rating));
+            renderProviders('homeNewList', mockProviders.slice().reverse());
+            renderProviders('servicesProviderList', mockProviders);
         }
-        
+
+        function renderProviders(containerId, providers) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            container.innerHTML = '';
+            if(providers.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">No providers found.</p>';
+                return;
+            }
+            providers.forEach(p => {
+                const featuredClass = p.featured ? 'featured' : '';
+                const featuredTag = p.featured ? '<span class="featured-tag">FEATURED</span>' : '';
+                container.innerHTML += `
+                    <div class="provider-card ${featuredClass}">
+                        <img src="https://via.placeholder.com/70" class="provider-img" alt="logo">
+                        <div class="provider-info">
+                            <div class="provider-name">${p.name} ✅ ${featuredTag}</div>
+                            <div class="provider-meta">
+                                <span class="provider-rating-inline">⭐ ${p.rating} <span style="color: var(--text-muted); font-weight: 400;">(${p.reviews} reviews)</span></span>
+                                <span>•</span>
+                                <span>${p.cat} • ${p.sub}</span>
+                            </div>
+                            <div class="provider-desc">${p.desc}</div>
+                            <div class="provider-meta">
+                                <span class="meta-tag">📍 ${p.continent}, ${p.country}, ${p.city}</span>
+                                <span class="meta-tag">📞 ${p.phone}</span>
+                            </div>
+                            <div class="action-row">
+                                <button class="btn btn-sm" onclick="openModal(${p.id})">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterProviders(source) {
+            let searchText, cat, sub, continent, country, sort;
+            
+            if(source === 'home') {
+                searchText = document.getElementById('homeSearchInput').value.toLowerCase();
+                const allContainers = ['homeTopRatedList', 'homeNewList'];
+                allContainers.forEach(cId => {
+                    const cards = document.getElementById(cId).querySelectorAll('.provider-card');
+                    cards.forEach(card => {
+                        const name = card.querySelector('.provider-name').innerText.toLowerCase();
+                        card.style.display = name.includes(searchText) ? 'flex' : 'none';
+                    });
+                });
+                return;
+            } else {
+                searchText = document.getElementById('serviceSearchInput').value.toLowerCase();
+                cat = document.getElementById('filterCategory').value;
+                sub = document.getElementById('filterSubCategory').value;
+                continent = document.getElementById('filterContinent').value;
+                country = document.getElementById('filterCountry').value;
+                sort = document.getElementById('filterSort').value;
+            }
+
+            let filtered = mockProviders.filter(p => {
+                const mName = p.name.toLowerCase().includes(searchText);
+                const mCat = (cat === 'All' || p.cat === cat);
+                const mSub = (sub === 'All' || p.sub === sub);
+                const mCont = (continent === 'All' || p.continent === continent);
+                const mCount = (country === 'All' || p.country === country);
+                return mName && mCat && mSub && mCont && mCount;
+            });
+
+            if (sort === 'rating') filtered.sort((a,b) => b.rating - a.rating);
+            if (sort === 'reviews') filtered.sort((a,b) => b.reviews - a.reviews);
+            
+            renderProviders('servicesProviderList', filtered);
+        }
+
+        function selectCategoryAndSearch(cat) {
+            switchTab('services', null);
+            document.getElementById('filterCategory').value = cat;
+            updateSubCategories();
+            filterProviders('services');
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('nav button:nth-child(2)').classList.add('active');
+        }
+
+        // --- Modal & Reviews ---
+        let currentProvider = null;
+        function openModal(id) {
+            currentProvider = mockProviders.find(p => p.id === id);
+            document.getElementById('modalTitle').innerText = currentProvider.name;
+            document.getElementById('modalRating').innerHTML = `⭐ ${currentProvider.rating} (${currentProvider.reviews} reviews)`;
+            document.getElementById('modalDetails').innerHTML = `
+                <p>${currentProvider.desc}</p>
+                <p style="margin-top: 5px;">📍 ${currentProvider.continent}, ${currentProvider.country}, ${currentProvider.city}</p>
+                <p>📞 ${currentProvider.phone}</p>
+            `;
+            document.getElementById('providerModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('providerModal').style.display = 'none'; }
+
+        let selectedRating = 0;
+        function setRating(rating) {
+            selectedRating = rating;
+            document.querySelectorAll('#starRating span').forEach((star, index) => {
+                star.style.color = index < rating ? '#ffd700' : 'var(--border-color)';
+            });
+        }
+
+        function submitReview() {
+            if(!document.getElementById('reviewRulesCheck').checked) {
+                alert("Please agree to the review rules.");
+                return;
+            }
+            if(selectedRating === 0) {
+                alert("Please select a star rating.");
+                return;
+            }
+            const text = document.getElementById('reviewText').value;
+            if(text.length < 10) {
+                alert("Review must be at least 10 characters.");
+                return;
+            }
+            if(text.includes("http") || text.includes("www.")) {
+                alert("Links are not allowed in reviews.");
+                return;
+            }
+            alert("Review submitted successfully!");
+            document.getElementById('reviewText').value = '';
+            setRating(0);
+            document.getElementById('reviewRulesCheck').checked = false;
+            closeModal();
+        }
+
+        // --- Chatbot ---
+        function toggleChat() {
+            const w = document.getElementById('chatbotWindow');
+            w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+        }
+        function handleChatEnter(e) { if (e.key === 'Enter') sendChatMessage(); }
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const messages = document.getElementById('chatMessages');
+            messages.innerHTML += `<div class="chat-msg user">${text}</div>`;
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+
+            setTimeout(() => {
+                let reply = "I'm not sure. Contact @MainHadi0011 for help.";
+                const t = text.toLowerCase();
+                if (t.includes('register') || t.includes('sign up')) reply = "Go to the 'Register' tab, fill the form, and pay 1 Pi.";
+                if (t.includes('fee') || t.includes('cost')) reply = "Registration is 1 Pi. Featured is 10 Pi/month.";
+                if (t.includes('vote') || t.includes('review')) reply = "Open any provider and click 'View Details' to submit a review.";
+                messages.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }, 600);
+        }
+
+        // --- Admin Panel Mock ---
+        function switchAdminTab(tab, e) {
+            document.querySelectorAll('#tab-admin .help-tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const content = document.getElementById('adminContent');
+            if(tab === 'pending') {
+                content.innerHTML = `<table class="admin-table"><tr><th>Name</th><th>Status</th><th>Action</th></tr>
+                <tr><td>New Clinic</td><td style="color:var(--warning)">Pending</td><td><button class="btn btn-sm" style="background:var(--success)">Approve</button></td></tr></table>`;
+            } else if (tab === 'reports') {
+                content.innerHTML = `<p>No reported reviews at this time.</p>`;
+            } else {
+                content.innerHTML = `<p>Total Revenue: 150 Pi</p><p>Pending Payouts: 20 Pi</p>`;
+            }
+        }
+        switchAdminTab('pending', {target: document.querySelector('#tab-admin .help-tab-btn')});
+
+        // --- Help Sub-tabs ---
+        function switchHelpTab(tab, e) {
+            document.querySelectorAll('.help-tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('help-' + tab).classList.add('active');
+            document.querySelectorAll('.help-tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        }
+
+        // --- Pi SDK ---
+        if (window.Pi) { Pi.init({ version: "2.0", sandbox: true }); }
         async function loginWithPi() {
             if (window.Pi) {
                 try {
@@ -478,4 +852,3 @@
     </script>
 </body>
 </html>
-// rebuild
