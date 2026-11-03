@@ -786,27 +786,48 @@
         }
 
         function handleCategoryChange() {
+        function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
             const subCatGroup = document.getElementById('subCatGroup');
             const subCatSelect = document.getElementById('regSubCategory');
             const customCatGroup = document.getElementById('customCatGroup');
-
             if (mainCat === 'Others') {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'block';
-            } else if (mainCat && typeof categorySubCats !== 'undefined' && categorySubCats[mainCat]) {
+            } else if (mainCat) {
                 customCatGroup.style.display = 'none';
                 subCatGroup.style.display = 'block';
                 subCatSelect.innerHTML = '<option value="">Select...</option>';
-                categorySubCats[mainCat].forEach(sub => {
-                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-                });
+                
+                // Fallback data in case data.js fails to load
+                const fallbackCats = {
+                    "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
+                    "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
+                    "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
+                    "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services"],
+                    "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Banking"],
+                    "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide", "Visa Services"],
+                    "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier", "Freight"],
+                    "Real Estate": ["Agent", "Property Management", "Short-term Rental"],
+                    "Education": ["Tutoring", "Online Courses", "Language School"],
+                    "Home & Personal Services": ["Cleaning", "Repair", "Beauty & Salon", "Pet Care"],
+                    "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
+                    "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
+                    "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
+                    "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"]
+                };     
+                const catsToUse = (typeof categorySubCats !== 'undefined') ? categorySubCats : fallbackCats;
+                
+                if (catsToUse[mainCat]) {
+                    catsToUse[mainCat].forEach(sub => {
+                        subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                    });
+                }
             } else {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'none';
             }
         }
-
         function updateSubCategories() {
             const mainCat = document.getElementById('filterCategory').value;
             const subCatSelect = document.getElementById('filterSubCategory');
