@@ -1,5 +1,4 @@
 const globalContinents = ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"];
-
 const globalCountriesData = [
     { name: "United States", continent: "North America", phone: "+1", cities: ["New York", "Los Angeles", "Chicago", "Houston", "Miami", "San Francisco"] },
     { name: "Canada", continent: "North America", phone: "+1", cities: ["Toronto", "Vancouver", "Montreal", "Calgary"] },
