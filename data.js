@@ -1,46 +1,6 @@
-const globalContinents = ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"];
-const globalCountriesData = [
-    { name: "United States", continent: "North America", phone: "+1", cities: ["New York", "Los Angeles", "Chicago", "Houston", "Miami", "San Francisco"] },
-    { name: "Canada", continent: "North America", phone: "+1", cities: ["Toronto", "Vancouver", "Montreal", "Calgary"] },
-    { name: "Mexico", continent: "North America", phone: "+52", cities: ["Mexico City", "Guadalajara", "Monterrey"] },
-    { name: "Brazil", continent: "South America", phone: "+55", cities: ["Sao Paulo", "Rio de Janeiro", "Brasilia"] },
-    { name: "Argentina", continent: "South America", phone: "+54", cities: ["Buenos Aires", "Cordoba"] },
-    { name: "Colombia", continent: "South America", phone: "+57", cities: ["Bogota", "Medellin"] },
-    { name: "Chile", continent: "South America", phone: "+56", cities: ["Santiago"] },
-    { name: "United Kingdom", continent: "Europe", phone: "+44", cities: ["London", "Manchester", "Birmingham"] },
-    { name: "Germany", continent: "Europe", phone: "+49", cities: ["Berlin", "Munich", "Frankfurt"] },
-    { name: "France", continent: "Europe", phone: "+33", cities: ["Paris", "Lyon", "Marseille"] },
-    { name: "Italy", continent: "Europe", phone: "+39", cities: ["Rome", "Milan"] },
-    { name: "Spain", continent: "Europe", phone: "+34", cities: ["Madrid", "Barcelona"] },
-    { name: "Netherlands", continent: "Europe", phone: "+31", cities: ["Amsterdam", "Rotterdam"] },
-    { name: "Switzerland", continent: "Europe", phone: "+41", cities: ["Zurich", "Geneva"] },
-    { name: "Sweden", continent: "Europe", phone: "+46", cities: ["Stockholm", "Gothenburg"] },
-    { name: "Russia", continent: "Europe", phone: "+7", cities: ["Moscow", "Saint Petersburg"] },
-    { name: "China", continent: "Asia", phone: "+86", cities: ["Beijing", "Shanghai", "Guangzhou", "Shenzhen"] },
-    { name: "India", continent: "Asia", phone: "+91", cities: ["Mumbai", "Delhi", "Bangalore"] },
-    { name: "Japan", continent: "Asia", phone: "+81", cities: ["Tokyo", "Osaka", "Kyoto"] },
-    { name: "Indonesia", continent: "Asia", phone: "+62", cities: ["Jakarta", "Surabaya", "Bali"] },
-    { name: "Philippines", continent: "Asia", phone: "+63", cities: ["Manila", "Cebu City"] },
-    { name: "Vietnam", continent: "Asia", phone: "+84", cities: ["Hanoi", "Ho Chi Minh City"] },
-    { name: "Thailand", continent: "Asia", phone: "+66", cities: ["Bangkok", "Phuket"] },
-    { name: "South Korea", continent: "Asia", phone: "+82", cities: ["Seoul", "Busan"] },
-    { name: "Pakistan", continent: "Asia", phone: "+92", cities: ["Karachi", "Lahore"] },
-    { name: "Iran", continent: "Asia", phone: "+98", cities: ["Tehran", "Isfahan", "Mashhad"] },
-    { name: "Saudi Arabia", continent: "Asia", phone: "+966", cities: ["Riyadh", "Jeddah"] },
-    { name: "UAE", continent: "Asia", phone: "+971", cities: ["Dubai", "Abu Dhabi"] },
-    { name: "Turkey", continent: "Asia", phone: "+90", cities: ["Istanbul", "Ankara"] },
-    { name: "Nigeria", continent: "Africa", phone: "+234", cities: ["Lagos", "Abuja"] },
-    { name: "South Africa", continent: "Africa", phone: "+27", cities: ["Cape Town", "Johannesburg"] },
-    { name: "Kenya", continent: "Africa", phone: "+254", cities: ["Nairobi"] },
-    { name: "Egypt", continent: "Africa", phone: "+20", cities: ["Cairo", "Alexandria"] },
-    { name: "Ghana", continent: "Africa", phone: "+233", cities: ["Accra"] },
-    { name: "Ethiopia", continent: "Africa", phone: "+251", cities: ["Addis Ababa"] },
-    { name: "Morocco", continent: "Africa", phone: "+212", cities: ["Casablanca", "Marrakesh"] },
-    { name: "Australia", continent: "Oceania", phone: "+61", cities: ["Sydney", "Melbourne"] },
-    { name: "New Zealand", continent: "Oceania", phone: "+64", cities: ["Auckland"] }
-];
-
-const categorySubCats = {
+// Comprehensive Global Data (Fetched dynamically to ensure completeness)
+window.globalCountriesData = [];
+window.categorySubCats = {
     "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
     "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
     "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
@@ -57,4 +17,53 @@ const categorySubCats = {
     "Beauty & Wellness": ["Spa", "Massage", "Skincare", "Hair Salon"],
     "Automotive": ["Car Dealer", "Auto Repair", "Car Wash", "Parts"],
     "Others": ["Custom Category"]
+};
+
+// Fetch ALL 250 countries from a reliable open-source database
+fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json')
+    .then(response => response.json())
+    .then(data => {
+        // Map the API data to our app's format
+        window.globalCountriesData = data.map(country => ({
+            name: country.name,
+            continent: country.region, // e.g., Asia, Europe, Americas, Africa, Oceania
+            phone: country.phone_code,
+            iso2: country.iso2 // We need this for fetching cities later
+        }));
+        
+        // Since fetch is async, we need to re-trigger the UI population
+        if (typeof populateRegions === 'function') {
+            populateRegions();
+            populateCategories();
+        }
+    })
+    .catch(error => console.error("Error loading countries:", error));
+
+// Function to fetch cities dynamically based on country code
+window.fetchCitiesForCountry = async function(iso2, targetSelectId) {
+    const select = document.getElementById(targetSelectId);
+    select.innerHTML = '<option value="">Loading cities...</option>';
+    
+    try {
+        // Using a lightweight API to fetch cities for the specific country
+        const response = await fetch(`https://countriesnow.space/api/v0.1/countries/cities`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ iso2: iso2 })
+        });
+        const data = await response.json();
+        
+        select.innerHTML = '<option value="">Select City...</option>';
+        if(data.error === false && data.data) {
+            // Sort cities alphabetically and add to dropdown
+            data.data.sort().forEach(city => {
+                select.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+        } else {
+            select.innerHTML = '<option value="">No cities found</option>';
+        }
+    } catch (error) {
+        console.error("Error loading cities:", error);
+        select.innerHTML = '<option value="">Error loading cities</option>';
+    }
 };
