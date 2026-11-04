@@ -8,9 +8,13 @@
     <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
-    <!-- External Data & Language Files -->
-    <script src="data.js"></script>
-    <script src="lang.js"></script>
+    <!-- Google Translate Script (Standard Translation) -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <style>
         :root {
@@ -41,7 +45,11 @@
         .header-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .notification-bell { position: relative; cursor: pointer; font-size: 20px; }
         .notification-dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; }
-        .lang-select { border: 2px solid var(--primary); font-size: 13px; font-weight: bold; padding: 8px 12px; border-radius: 8px; color: var(--primary); background: var(--bg-card); outline: none; cursor: pointer; max-width: 140px; }
+        
+        /* Styling Google Translate Widget */
+        #google_translate_element { border: 2px solid var(--primary); border-radius: 8px; padding: 2px 5px; background: var(--bg-card); font-weight: bold; }
+        .goog-te-gadget-simple { border: none !important; background-color: transparent !important; }
+        .goog-te-gadget-simple .goog-te-menu-value span { color: var(--primary) !important; font-family: inherit !important; font-size: 13px;}
 
         .theme-toggle { position: relative; }
         .theme-btn { background: var(--bg-body); border: 1px solid var(--border-color); font-size: 18px; cursor: pointer; padding: 6px 10px; border-radius: 8px; color: var(--text-main); }
@@ -83,7 +91,6 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Provider Card with Show More */
         .provider-card { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: 0.3s; display: flex; flex-direction: column; }
         .provider-card:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
         .provider-card.featured { border: 2px solid var(--warning); background: linear-gradient(to right, rgba(214, 158, 46, 0.05), transparent); }
@@ -103,7 +110,6 @@
         .meta-tag { background: var(--bg-body); padding: 3px 8px; border-radius: 5px; font-size: 11px; color: var(--text-muted); }
         .action-row { display: flex; gap: 10px; margin-top: 10px; }
         
-        /* Hidden Details */
         .provider-details-hidden { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color); font-size: 13px; color: var(--text-muted); }
         .provider-details-hidden.show { display: block; }
 
@@ -118,7 +124,7 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
         
         .phone-input-group { display: flex; gap: 10px; width: 100%; }
-        .phone-input-group #phoneCode { width: 75px; padding: 12px; text-align: center; flex-shrink: 0; }
+        .phone-input-group #phoneCode { width: 80px; padding: 12px; text-align: center; flex-shrink: 0; }
         .phone-input-group #regMobile { flex: 1; width: auto; }
 
         .info-icon { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; cursor: pointer; font-weight: bold; }
@@ -149,6 +155,11 @@
         .close-btn { position: absolute; top: 15px; right: 15px; background: var(--bg-body); border: none; font-size: 20px; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .close-btn:hover { background: var(--danger); color: white; }
 
+        /* Language Selection Modal on Load */
+        #langModal .modal-content { text-align: center; }
+        .lang-btn { display: block; width: 100%; padding: 15px; margin-bottom: 10px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 16px; cursor: pointer; transition: 0.2s; color: var(--text-main); font-weight: bold;}
+        .lang-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
         .review-item { background: var(--bg-body); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
         .review-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
         .reviewer-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
@@ -178,6 +189,25 @@
 </head>
 <body data-theme="light">
 
+    <!-- Language Selection Modal (Shows on first load) -->
+    <div class="modal-overlay" id="langModal" style="display: flex; z-index: 9999;">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Welcome to Hi Pi</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">Please select your preferred language.</p>
+            <button class="lang-btn" onclick="selectLanguage('en')">🇬🇧 English</button>
+            <button class="lang-btn" onclick="selectLanguage('zh-CN')">🇨🇳 中文 (Chinese)</button>
+            <button class="lang-btn" onclick="selectLanguage('id')">🇮🇩 Bahasa Indonesia</button>
+            <button class="lang-btn" onclick="selectLanguage('th')">🇹🇭 ภาษาไทย (Thai)</button>
+            <button class="lang-btn" onclick="selectLanguage('vi')">🇻🇳 Tiếng Việt (Vietnamese)</button>
+            <button class="lang-btn" onclick="selectLanguage('ar')">🇸🇦 العربية (Arabic)</button>
+            <button class="lang-btn" onclick="selectLanguage('sw')">🇰🇪 Kiswahili (Swahili)</button>
+            <button class="lang-btn" onclick="selectLanguage('fr')">🇫🇷 Français (French)</button>
+            <button class="lang-btn" onclick="selectLanguage('es')">🇪🇸 Español (Spanish)</button>
+            <button class="lang-btn" onclick="selectLanguage('tr')">🇹🇷 Türkçe (Turkish)</button>
+            <button class="lang-btn" onclick="selectLanguage('hi')">🇮🇳 हिन्दी (Hindi)</button>
+        </div>
+    </div>
+
     <header>
         <div class="logo" onclick="switchTab('home', event)">
             <img src="Logo-HiPi.png" alt="Hi Pi Network Logo">
@@ -188,26 +218,16 @@
         </div>
         
         <nav id="mainNav">
-            <button class="active" onclick="switchTab('home', event)" data-i18n="home">Home</button>
-            <button onclick="switchTab('services', event)" data-i18n="services">Services</button>
-            <button onclick="switchTab('register', event)" data-i18n="register">Register</button>
-            <button onclick="switchTab('merchant', event)" data-i18n="merchant">Merchant Console</button>
-            <button onclick="switchTab('help', event)" data-i18n="help">Help</button>
+            <button class="active" onclick="switchTab('home', event)">Home</button>
+            <button onclick="switchTab('services', event)">Services</button>
+            <button onclick="switchTab('register', event)">Register</button>
+            <button onclick="switchTab('merchant', event)">Merchant Console</button>
+            <button onclick="switchTab('help', event)">Help</button>
         </nav>
 
         <div class="header-actions">
-            <select class="lang-select" onchange="changeLanguage(this.value)">
-                <option value="en">🌐 English</option>
-                <option value="zh">🌐 中文 (Chinese)</option>
-                <option value="zh-TW">🌐 繁體中文 (Taiwan)</option>
-                <option value="id">🌐 Bahasa Indonesia</option>
-                <option value="ms">🌐 Bahasa Melayu</option>
-                <option value="th">🌐 ภาษาไทย (Thai)</option>
-                <option value="tr">🌐 Türkçe (Turkish)</option>
-                <option value="ar">🌐 العربية (Arabic)</option>
-                <option value="sw">🌐 Kiswahili (Swahili)</option>
-                <option value="fa">🌐 فارسی</option>
-            </select>
+            <!-- Google Translate Widget Container -->
+            <div id="google_translate_element"></div>
 
             <div class="notification-bell" onclick="alert('No new notifications.')">
                 🔔<span class="notification-dot" id="notifDot" style="display:none;"></span>
@@ -315,7 +335,7 @@
                         <label>Main Category</label>
                         <select id="regMainCategory" onchange="handleCategoryChange()" required><option value="">Select...</option></select>
                     </div>
-                    <!-- Subcategory Dropdown -->
+                    <!-- Subcategory Dropdown (Hidden by default) -->
                     <div class="form-group" id="subCatGroup" style="display: none;">
                         <label>Sub-Category</label>
                         <select id="regSubCategory"><option value="">Select...</option></select>
@@ -424,7 +444,8 @@
                     <div class="form-group">
                         <label>Mobile Number (Required)</label>
                         <div class="phone-input-group">
-                            <input type="text" id="phoneCode" readonly placeholder="+1">
+                            <!-- Removed readonly so user can edit manually -->
+                            <input type="text" id="phoneCode" placeholder="+1">
                             <input type="tel" id="regMobile" placeholder="234 567 890">
                         </div>
                     </div>
@@ -645,7 +666,27 @@
         </div>
     </div>
         <script>
-        // --- 1. Initialization ---
+        // --- 1. Internal Dictionary for Categories (Fixes the subcategory bug) ---
+        const internalCategories = {
+            "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
+            "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
+            "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
+            "Professional Services": ["Legal", "Accounting", "Marketing", "Translation", "Consulting"],
+            "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services"],
+            "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Banking"],
+            "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide", "Visa Services"],
+            "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier", "Freight"],
+            "Real Estate": ["Agent", "Property Management", "Short-term Rental"],
+            "Education": ["Tutoring", "Online Courses", "Language School"],
+            "Home & Personal Services": ["Cleaning", "Repair", "Beauty & Salon", "Pet Care"],
+            "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
+            "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
+            "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
+            "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"],
+            "Others": ["Custom Category"]
+        };
+
+        // --- 2. Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             populateGrid();
             populateRegions();
@@ -682,7 +723,19 @@
             if(e) e.target.classList.add('active');
         }
 
-        // --- 2. Form Population ---
+        // --- 3. Language Selection Logic ---
+        function selectLanguage(langCode) {
+            document.getElementById('langModal').style.display = 'none';
+            // Standard Google Translate Cookie implementation
+            if (langCode === 'en') {
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            } else {
+                document.cookie = `googtrans=/en/${langCode}; path=/;`;
+            }
+            window.location.reload();
+        }
+
+        // --- 4. Form Population ---
         function populateGrid() {
             const grid = document.getElementById('homeCategoryGrid');
             const icons = { 
@@ -720,34 +773,13 @@
             regCat.innerHTML = '<option value="">Select Category...</option>';
             filterCat.innerHTML = '<option value="All">All Categories</option>';
 
-            const fallbackCats = {
-                "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
-                "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
-                "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
-                "Professional Services": ["Legal", "Accounting", "Marketing", "Translation", "Consulting"],
-                "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services"],
-                "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Banking"],
-                "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide", "Visa Services"],
-                "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier", "Freight"],
-                "Real Estate": ["Agent", "Property Management", "Short-term Rental"],
-                "Education": ["Tutoring", "Online Courses", "Language School"],
-                "Home & Personal Services": ["Cleaning", "Repair", "Beauty & Salon", "Pet Care"],
-                "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
-                "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
-                "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
-                "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"],
-                "Others": ["Custom Category"]
-            };
-            
-            const catsToUse = (typeof categorySubCats !== 'undefined' && Object.keys(categorySubCats).length > 0) ? categorySubCats : fallbackCats;
-
-            for (let cat in catsToUse) {
+            for (let cat in internalCategories) {
                 regCat.innerHTML += `<option value="${cat}">${cat}</option>`;
                 filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
             }
         }
 
-        // --- 3. Country & City Loading ---
+        // --- 5. Country & City Loading ---
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
             select.innerHTML = '<option value="">Select Country...</option>';
@@ -783,18 +815,30 @@
             document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
         }
 
+        // --- 6. Phone Code Logic (Auto + Manual) ---
         function updatePhoneCode() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
-            if (!selectedOption || !selectedOption.value) return;
+            const phoneCodeInput = document.getElementById('phoneCode');
             
-            if(typeof globalCountriesData !== 'undefined') {
+            if (!selectedOption || !selectedOption.value) {
+                phoneCodeInput.value = '';
+                return;
+            }
+            
+            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const country = globalCountriesData.find(c => c.name === selectedOption.value);
-                document.getElementById('phoneCode').value = country ? country.phone : '';
+                // Check if phone code exists and is not undefined
+                if (country && country.phone && country.phone !== 'undefined') {
+                    phoneCodeInput.value = country.phone;
+                } else {
+                    phoneCodeInput.value = '+'; // Fallback for manual entry
+                }
+            } else {
+                phoneCodeInput.value = '+';
             }
         }
 
-        // --- Unified Function to Fetch Cities ---
         async function fetchCitiesForSelect(countryName, targetSelectId) {
             const select = document.getElementById(targetSelectId);
             select.innerHTML = '<option value="">Loading cities...</option>';
@@ -841,7 +885,7 @@
             fetchCitiesForSelect(selectedOption.value, 'filterCity');
         }
 
-        // --- 4. Custom Category Logic ---
+        // --- 7. Custom Category & Subcategory Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
             const subCatGroup = document.getElementById('subCatGroup');
@@ -851,35 +895,13 @@
             if (mainCat === 'Others') {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'block';
-            } else if (mainCat) {
+            } else if (mainCat && internalCategories[mainCat]) {
                 customCatGroup.style.display = 'none';
                 subCatGroup.style.display = 'block';
                 subCatSelect.innerHTML = '<option value="">Select...</option>';
-                
-                const fallbackCats = {
-                    "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
-                    "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
-                    "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
-                    "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services"],
-                    "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Banking"],
-                    "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide", "Visa Services"],
-                    "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier", "Freight"],
-                    "Real Estate": ["Agent", "Property Management", "Short-term Rental"],
-                    "Education": ["Tutoring", "Online Courses", "Language School"],
-                    "Home & Personal Services": ["Cleaning", "Repair", "Beauty & Salon", "Pet Care"],
-                    "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
-                    "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
-                    "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
-                    "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"]
-                };
-                
-                const catsToUse = (typeof categorySubCats !== 'undefined' && Object.keys(categorySubCats).length > 0) ? categorySubCats : fallbackCats;
-                
-                if (catsToUse[mainCat]) {
-                    catsToUse[mainCat].forEach(sub => {
-                        subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-                    });
-                }
+                internalCategories[mainCat].forEach(sub => {
+                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                });
             } else {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'none';
@@ -890,8 +912,8 @@
             const mainCat = document.getElementById('filterCategory').value;
             const subCatSelect = document.getElementById('filterSubCategory');
             subCatSelect.innerHTML = '<option value="All">All Subcategories</option>';
-            if (mainCat !== 'All' && typeof categorySubCats !== 'undefined' && categorySubCats[mainCat]) {
-                categorySubCats[mainCat].forEach(sub => {
+            if (mainCat !== 'All' && internalCategories[mainCat]) {
+                internalCategories[mainCat].forEach(sub => {
                     subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                 });
             }
@@ -938,17 +960,18 @@
             switchTab('merchant', null);
         }
 
-        // --- 5. Rendering & Filtering (With Show More Logic) ---
+        // --- 8. Rendering & Filtering (Diverse Mock Data) ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
         }
 
         const mockProviders = [
-            { id: 1, name: "Pi Health Clinic", cat: "Health & Medical", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
-            { id: 2, name: "PiDev Solutions", cat: "IT & Technology", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
-            { id: 3, name: "PiMart Store", cat: "Retail & Shopping", country: "Iran", city: "Tehran", rating: 4.2, reviews: 45, featured: true, desc: "Local goods marketplace.", hours: "8 AM - 10 PM (Local)", phone: "+98 21 1234 5678" },
-            { id: 4, name: "Fit Pi Gym", cat: "Sports & Fitness", country: "United States", city: "Los Angeles", rating: 3.8, reviews: 67, featured: false, desc: "Modern gym with crossfit.", hours: "24 Hours (Local)", phone: "+1 310 555 1234" }
+            { id: 1, name: "New York Health", cat: "Health & Medical", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
+            { id: 2, name: "London IT Hub", cat: "IT & Technology", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development and dApp consulting.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
+            { id: 3, name: "Jakarta Cafe", cat: "Food & Beverage", country: "Indonesia", city: "Jakarta", rating: 4.5, reviews: 210, featured: true, desc: "Traditional Indonesian coffee and snacks.", hours: "8 AM - 10 PM (Local)", phone: "+62 21 1234 5678" },
+            { id: 4, name: "Lagos Tech", cat: "IT & Technology", country: "Nigeria", city: "Lagos", rating: 4.3, reviews: 78, featured: false, desc: "Mobile app development and consulting.", hours: "9 AM - 5 PM (Local)", phone: "+234 1 234 5678" },
+            { id: 5, name: "Berlin Bakery", cat: "Food & Beverage", country: "Germany", city: "Berlin", rating: 4.8, reviews: 156, featured: false, desc: "Fresh German breads and pastries.", hours: "7 AM - 6 PM (Local)", phone: "+49 30 123456" }
         ];
 
         function renderProviders(containerId, providers) {
@@ -1046,7 +1069,7 @@
             }
         }
 
-        // --- 6. Modal & Reviews ---
+        // --- 9. Modal & Reviews ---
         let currentRating = 0;
         let surveyData = {};
 
@@ -1092,7 +1115,7 @@
             closeModal();
         }
 
-        // --- 7. Merchant Console ---
+        // --- 10. Merchant Console ---
         function updateMerchantConsole() {
             const content = document.getElementById('merchantContent');
             if(localStorage.getItem('isProvider') === 'true') {
@@ -1121,7 +1144,7 @@
             }
         }
 
-        // --- 8. Admin Panel ---
+        // --- 11. Admin Panel ---
         function accessAdminPanel() {
             const uid = prompt("Enter Admin UID to access panel:");
             if(uid === "Hadi0011" || uid === "admin") {
@@ -1145,8 +1168,8 @@
                 content.innerHTML = `
                     <table class="admin-table">
                         <tr><th>Provider</th><th>Type</th><th>Amount</th><th>Tx Hash</th><th>Status</th></tr>
-                        <tr><td>PiMart Store</td><td>Registration</td><td>5 Pi</td><td>0x3f...a2b</td><td style="color:var(--success)">Completed</td></tr>
-                        <tr><td>Pi Health</td><td>Featured Upgrade</td><td>25 Pi</td><td>0x9c...e1f</td><td style="color:var(--success)">Completed</td></tr>
+                        <tr><td>Jakarta Cafe</td><td>Registration</td><td>5 Pi</td><td>0x3f...a2b</td><td style="color:var(--success)">Completed</td></tr>
+                        <tr><td>London IT Hub</td><td>Featured Upgrade</td><td>25 Pi</td><td>0x9c...e1f</td><td style="color:var(--success)">Completed</td></tr>
                     </table>
                 `;
             } else if (tab === 'chat') {
@@ -1154,12 +1177,12 @@
                     <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
                         <strong>Chat Inbox (Providers)</strong>
                     </div>
-                    <div class="review-item" style="cursor:pointer;" onclick="openChatReply('PiMart Store', 'Hello Admin, I need help with my Pro subscription upgrade.')">
-                        <div class="review-header"><span class="reviewer-name">PiMart Store</span> <span style="font-size:12px; color:var(--text-muted);">2 mins ago</span></div>
+                    <div class="review-item" style="cursor:pointer;" onclick="openChatReply('Jakarta Cafe', 'Hello Admin, I need help with my Pro subscription upgrade.')">
+                        <div class="review-header"><span class="reviewer-name">Jakarta Cafe</span> <span style="font-size:12px; color:var(--text-muted);">2 mins ago</span></div>
                         <p class="review-text">Hello Admin, I need help with my Pro subscription upgrade.</p>
                     </div>
-                    <div class="review-item" style="cursor:pointer;" onclick="openChatReply('Pi Health Clinic', 'Why was my document rejected? I uploaded the correct license.')">
-                        <div class="review-header"><span class="reviewer-name">Pi Health Clinic</span> <span style="font-size:12px; color:var(--text-muted);">1 hour ago</span></div>
+                    <div class="review-item" style="cursor:pointer;" onclick="openChatReply('New York Health', 'Why was my document rejected? I uploaded the correct license.')">
+                        <div class="review-header"><span class="reviewer-name">New York Health</span> <span style="font-size:12px; color:var(--text-muted);">1 hour ago</span></div>
                         <p class="review-text">Why was my document rejected? I uploaded the correct license.</p>
                     </div>
                     <div id="chatReplyBox" style="display:none; margin-top: 20px; background: var(--bg-body); padding: 15px; border-radius: 10px;">
@@ -1186,7 +1209,7 @@
             document.getElementById('chatReplyBox').style.display = 'none';
         }
 
-        // --- 9. Chatbot ---
+        // --- 12. Chatbot ---
         function toggleChat(sender) {
             const w = document.getElementById('chatbotWindow');
             const headerTitle = document.getElementById('chatHeaderTitle');
@@ -1231,16 +1254,7 @@
             }, 600);
         }
 
-        // --- 10. Language Support ---
-        function changeLanguage(lang) {
-            if(typeof translatePage === 'function') {
-                translatePage(lang);
-            } else {
-                alert("Language pack not loaded yet.");
-            }
-        }
-
-        // --- 11. Pi SDK Integration ---
+        // --- 13. Pi SDK Integration ---
         if (window.Pi) { Pi.init({ version: "2.0" }); }
 
         async function loginWithPi() {
