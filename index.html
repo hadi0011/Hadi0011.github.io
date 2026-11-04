@@ -880,21 +880,22 @@
                 select.innerHTML = '<option value="">Select City...</option>';
             }
         }
-
-        function populateRegCities() {
+               function populateRegCities() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
             if (!selectedOption || !selectedOption.value) return;
-            fetchCitiesForSelect(selectedOption.value, 'regCity');
+            
+            const countryName = selectedOption.value;
+            const country = globalCountriesData.find(c => c.name === countryName);
+            const citySelect = document.getElementById('regCity');
+            
+            citySelect.innerHTML = '<option value="">Select City...</option>';
+            if(country && country.cities) {
+                country.cities.forEach(city => {
+                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                });
+            }
         }
-
-        function populateFilterCities() {
-            const select = document.getElementById('filterCountry');
-            const selectedOption = select.options[select.selectedIndex];
-            if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return;
-            fetchCitiesForSelect(selectedOption.value, 'filterCity');
-        }
-
         // --- 7. Custom Category & Subcategory Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
