@@ -417,7 +417,7 @@
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group"><label>Region / Continent</label><select id="regRegion" onchange="populateRegCountries(this.value)"><option value="">Select...</option></select></div>
-                    <div class="form-group"><label>Country</label><select id="regCountry" onchange="updatePhoneCode(this.value); populateRegCities(this.value)"><option value="">Select...</option></select></div>
+                    <div class="form-group"><label>Country</label><select id="regCountry" onchange="updatePhoneCode(); populateRegCities()"><option value="">Select...</option></select><option value="">Select...</option></select></div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -735,14 +735,16 @@
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
             select.innerHTML = '<option value="">Select Country...</option>';
-            if(typeof globalCountriesData !== 'undefined') {
-                globalCountriesData.filter(c => c.continent === region).forEach(c => {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
+                let apiRegion = region;
+                if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
+                
+                globalCountriesData.filter(c => c.continent === apiRegion).forEach(c => {
+                    select.innerHTML += `<option value="${c.name}" data-iso2="${c.iso2}">${c.name}</option>`;
                 });
             }
             document.getElementById('regCity').innerHTML = '<option value="">Select City...</option>';
         }
-
         function populateFilterCountries(region) {
             const select = document.getElementById('filterCountry');
             select.innerHTML = '<option value="All">All Countries</option>';
@@ -754,19 +756,16 @@
             }
             document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
         }
-
-        function populateRegCities(countryName) {
-            if(typeof globalCountriesData === 'undefined') return;
-            const country = globalCountriesData.find(c => c.name === countryName);
-            const select = document.getElementById('regCity');
-            select.innerHTML = '<option value="">Select City...</option>';
-            if(country && country.cities) {
-                country.cities.forEach(city => {
-                    select.innerHTML += `<option value="${city}">${city}</option>`;
-                });
+                    function populateRegCities() {
+            const select = document.getElementById('regCountry');
+            const selectedOption = select.options[select.selectedIndex];
+            if (!selectedOption || !selectedOption.value) return;
+            
+            const iso2 = selectedOption.getAttribute('data-iso2');
+            if(iso2 && typeof fetchCitiesForCountry === 'function') {
+                fetchCitiesForCountry(iso2, 'regCity');
             }
         }
-
         function populateFilterCities(countryName) {
             if(typeof globalCountriesData === 'undefined') return;
             const country = globalCountriesData.find(c => c.name === countryName);
@@ -778,13 +777,16 @@
                 });
             }
         }
-
-        function updatePhoneCode(countryName) {
-            if(typeof globalCountriesData === 'undefined') return;
-            const country = globalCountriesData.find(c => c.name === countryName);
-            document.getElementById('phoneCode').value = country ? country.phone : '';
+        function updatePhoneCode() {
+            const select = document.getElementById('regCountry');
+            const selectedOption = select.options[select.selectedIndex];
+            if (!selectedOption || !selectedOption.value) return;
+            
+            if(typeof globalCountriesData !== 'undefined') {
+                const country = globalCountriesData.find(c => c.name === selectedOption.value);
+                document.getElementById('phoneCode').value = country ? country.phone : '';
+            }
         }
-
         function handleCategoryChange() {
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
