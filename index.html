@@ -185,7 +185,7 @@
 </head>
 <body data-theme="light">
 
-    <!-- Language Selection Modal (Controlled by JS) -->
+    <!-- Language Selection Modal (Controlled by JS in Part 3) -->
     <div class="modal-overlay" id="langModal" style="z-index: 9999;">
         <div class="modal-content" style="max-width: 400px;">
             <h2 style="color: var(--primary); margin-bottom: 10px;">Welcome to Hi Pi</h2>
@@ -440,7 +440,7 @@
                     <div class="form-group">
                         <label>Mobile Number (Required)</label>
                         <div class="phone-input-group">
-                            <!-- Phone code is now editable (removed readonly) -->
+                            <!-- Removed readonly so user can edit manually -->
                             <input type="text" id="phoneCode" placeholder="+1">
                             <input type="tel" id="regMobile" placeholder="234 567 890">
                         </div>
@@ -662,7 +662,7 @@
         </div>
     </div>
         <script>
-        // --- 1. Internal Dictionary for Categories (No dependency on data.js) ---
+        // --- 1. Internal Dictionary for Categories (Fixes the subcategory bug) ---
         const internalCategories = {
             "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
             "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
@@ -787,43 +787,45 @@
             }
         }
 
-        // --- 5. Country & City Loading ---
+        // --- 5. Country & City Loading (Anti-Flicker Logic) ---
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
-            select.innerHTML = '<option value="">Select Country...</option>';
             
-            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
-                let apiRegion = region;
-                if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
-                
-                globalCountriesData.filter(c => c.continent === apiRegion).forEach(c => {
-                    select.innerHTML += `<option value="${c.name}" data-iso2="${c.iso2}">${c.name}</option>`;
-                });
-            } else {
-                setTimeout(() => populateRegCountries(region), 500);
+            if(typeof globalCountriesData === 'undefined' || globalCountriesData.length === 0) {
+                select.innerHTML = '<option value="">Loading countries...</option>';
+                return; // Stop here, data.js will call this again when ready
             }
+            
+            select.innerHTML = '<option value="">Select Country...</option>';
+            let apiRegion = region;
+            if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
+            
+            globalCountriesData.filter(c => c.continent === apiRegion).forEach(c => {
+                select.innerHTML += `<option value="${c.name}" data-iso2="${c.iso2}">${c.name}</option>`;
+            });
             document.getElementById('regCity').innerHTML = '<option value="">Select City...</option>';
         }
 
         function populateFilterCountries(region) {
             const select = document.getElementById('filterCountry');
-            select.innerHTML = '<option value="All">All Countries</option>';
             
-            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
-                let apiRegion = region;
-                if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
-                
-                const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === apiRegion);
-                filtered.forEach(c => {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                });
-            } else {
-                setTimeout(() => populateFilterCountries(region), 500);
+            if(typeof globalCountriesData === 'undefined' || globalCountriesData.length === 0) {
+                select.innerHTML = '<option value="">Loading countries...</option>';
+                return; // Stop here, data.js will call this again when ready
             }
+            
+            select.innerHTML = '<option value="All">All Countries</option>';
+            let apiRegion = region;
+            if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
+            
+            const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === apiRegion);
+            filtered.forEach(c => {
+                select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
             document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
         }
 
-        // --- 6. Phone Code Logic (Auto + Manual fallback) ---
+        // --- 6. Phone Code Logic (Auto + Manual) ---
         function updatePhoneCode() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
@@ -836,11 +838,11 @@
             
             if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const country = globalCountriesData.find(c => c.name === selectedOption.value);
-                // Check if phone code exists and is valid
+                // Check if phone code exists and is not undefined
                 if (country && country.phone && country.phone !== 'undefined') {
                     phoneCodeInput.value = country.phone;
                 } else {
-                    phoneCodeInput.value = '+'; // Fallback to manual entry
+                    phoneCodeInput.value = '+'; // Fallback for manual entry
                 }
             } else {
                 phoneCodeInput.value = '+';
