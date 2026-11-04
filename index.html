@@ -8,7 +8,7 @@
     <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
-    <!-- External Data & Language Files -->
+    <!-- External Data & Language Files (Loaded correctly) -->
     <script src="data.js"></script>
     <script src="lang.js"></script>
 
@@ -326,6 +326,7 @@
                         <label>Main Category</label>
                         <select id="regMainCategory" onchange="handleCategoryChange()" required><option value="">Select...</option></select>
                     </div>
+                    <!-- Subcategory Dropdown (Hidden by default) -->
                     <div class="form-group" id="subCatGroup" style="display: none;">
                         <label>Sub-Category</label>
                         <select id="regSubCategory"><option value="">Select...</option></select>
@@ -417,7 +418,7 @@
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group"><label>Region / Continent</label><select id="regRegion" onchange="populateRegCountries(this.value)"><option value="">Select...</option></select></div>
-                    <div class="form-group"><label>Country</label><select id="regCountry" onchange="updatePhoneCode(); populateRegCities()"><option value="">Select...</option></select><option value="">Select...</option></select></div>
+                    <div class="form-group"><label>Country</label><select id="regCountry" onchange="updatePhoneCode(); populateRegCities()"><option value="">Select...</option></select></div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -703,9 +704,7 @@
             };
             let html = '';
             for (let cat in icons) {
-                if(typeof categorySubCats !== 'undefined' && categorySubCats[cat]) {
-                    html += `<div class="cat-item" onclick="selectCategoryAndSearch('${cat}')"><span class="cat-icon">${icons[cat]}</span><span class="cat-name">${cat.split('&')[0]}</span></div>`;
-                }
+                html += `<div class="cat-item" onclick="selectCategoryAndSearch('${cat}')"><span class="cat-icon">${icons[cat]}</span><span class="cat-name">${cat.split('&')[0]}</span></div>`;
             }
             grid.innerHTML = html;
         }
@@ -713,28 +712,47 @@
         function populateRegions() {
             const regRegion = document.getElementById('regRegion');
             const filterRegion = document.getElementById('filterRegion');
-            if(typeof globalContinents !== 'undefined') {
-                globalContinents.forEach(r => {
-                    regRegion.innerHTML += `<option value="${r}">${r}</option>`;
-                    filterRegion.innerHTML += `<option value="${r}">${r}</option>`;
-                });
-            }
+            const regions = ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"];
+            regions.forEach(r => {
+                regRegion.innerHTML += `<option value="${r}">${r}</option>`;
+                filterRegion.innerHTML += `<option value="${r}">${r}</option>`;
+            });
         }
 
         function populateCategories() {
             const regCat = document.getElementById('regMainCategory');
             const filterCat = document.getElementById('filterCategory');
-            if(typeof categorySubCats !== 'undefined') {
-                for (let cat in categorySubCats) {
-                    regCat.innerHTML += `<option value="${cat}">${cat}</option>`;
-                    filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
-                }
+            
+            // Fallback if data.js fails
+            const fallbackCats = {
+                "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
+                "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
+                "Health & Medical": ["Doctors & Clinics", "Dentist", "Pharmacy", "Mental Health", "Hospital"],
+                "IT & Technology": ["App Development", "Web Design", "IT Support", "Cybersecurity", "Cloud Services"],
+                "Finance & Exchange": ["Crypto Exchange", "Investment", "Insurance", "Banking"],
+                "Travel & Hospitality": ["Hotel", "Flight Agency", "Tour Guide", "Visa Services"],
+                "Transportation": ["Taxi/Ride-hailing", "Car Rental", "Courier", "Freight"],
+                "Real Estate": ["Agent", "Property Management", "Short-term Rental"],
+                "Education": ["Tutoring", "Online Courses", "Language School"],
+                "Home & Personal Services": ["Cleaning", "Repair", "Beauty & Salon", "Pet Care"],
+                "Sports & Fitness": ["Gym", "Yoga Studio", "Personal Trainer"],
+                "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
+                "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
+                "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"],
+                "Others": ["Custom Category"]
+            };
+            const catsToUse = (typeof categorySubCats !== 'undefined' && Object.keys(categorySubCats).length > 0) ? categorySubCats : fallbackCats;
+
+            for (let cat in catsToUse) {
+                regCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+                filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
             }
         }
 
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
             select.innerHTML = '<option value="">Select Country...</option>';
+            
             if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 let apiRegion = region;
                 if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
@@ -742,41 +760,31 @@
                 globalCountriesData.filter(c => c.continent === apiRegion).forEach(c => {
                     select.innerHTML += `<option value="${c.name}" data-iso2="${c.iso2}">${c.name}</option>`;
                 });
+            } else {
+                // If data is not loaded yet, wait 500ms and try again
+                setTimeout(() => populateRegCountries(region), 500);
             }
             document.getElementById('regCity').innerHTML = '<option value="">Select City...</option>';
         }
+
         function populateFilterCountries(region) {
             const select = document.getElementById('filterCountry');
             select.innerHTML = '<option value="All">All Countries</option>';
-            if(typeof globalCountriesData !== 'undefined') {
-                const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === region);
+            
+            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
+                let apiRegion = region;
+                if(region === 'North America' || region === 'South America') apiRegion = 'Americas';
+                
+                const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === apiRegion);
                 filtered.forEach(c => {
                     select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
                 });
+            } else {
+                setTimeout(() => populateFilterCountries(region), 500);
             }
             document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
         }
-                    function populateRegCities() {
-            const select = document.getElementById('regCountry');
-            const selectedOption = select.options[select.selectedIndex];
-            if (!selectedOption || !selectedOption.value) return;
-            
-            const iso2 = selectedOption.getAttribute('data-iso2');
-            if(iso2 && typeof fetchCitiesForCountry === 'function') {
-                fetchCitiesForCountry(iso2, 'regCity');
-            }
-        }
-        function populateFilterCities(countryName) {
-            if(typeof globalCountriesData === 'undefined') return;
-            const country = globalCountriesData.find(c => c.name === countryName);
-            const select = document.getElementById('filterCity');
-            select.innerHTML = '<option value="All">All Cities</option>';
-            if(country && country.cities) {
-                country.cities.forEach(city => {
-                    select.innerHTML += `<option value="${city}">${city}</option>`;
-                });
-            }
-        }
+
         function updatePhoneCode() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
@@ -787,12 +795,25 @@
                 document.getElementById('phoneCode').value = country ? country.phone : '';
             }
         }
-        function handleCategoryChange() {
+
+        function populateRegCities() {
+            const select = document.getElementById('regCountry');
+            const selectedOption = select.options[select.selectedIndex];
+            if (!selectedOption || !selectedOption.value) return;
+            
+            const iso2 = selectedOption.getAttribute('data-iso2');
+            if(iso2 && typeof fetchCitiesForCountry === 'function') {
+                fetchCitiesForCountry(iso2, 'regCity');
+            }
+        }
+
+        // --- 3. Custom Category Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
             const subCatGroup = document.getElementById('subCatGroup');
             const subCatSelect = document.getElementById('regSubCategory');
             const customCatGroup = document.getElementById('customCatGroup');
+
             if (mainCat === 'Others') {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'block';
@@ -801,7 +822,7 @@
                 subCatGroup.style.display = 'block';
                 subCatSelect.innerHTML = '<option value="">Select...</option>';
                 
-                // Fallback data in case data.js fails to load
+                // Fallback data
                 const fallbackCats = {
                     "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery"],
                     "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
@@ -817,8 +838,9 @@
                     "Entertainment & Events": ["Event Planning", "Cinema", "Gaming"],
                     "Beauty & Wellness": ["Spa", "Massage", "Skincare"],
                     "Automotive": ["Car Dealer", "Auto Repair", "Car Wash"]
-                };     
-                const catsToUse = (typeof categorySubCats !== 'undefined') ? categorySubCats : fallbackCats;
+                };
+                
+                const catsToUse = (typeof categorySubCats !== 'undefined' && Object.keys(categorySubCats).length > 0) ? categorySubCats : fallbackCats;
                 
                 if (catsToUse[mainCat]) {
                     catsToUse[mainCat].forEach(sub => {
@@ -830,6 +852,7 @@
                 customCatGroup.style.display = 'none';
             }
         }
+
         function updateSubCategories() {
             const mainCat = document.getElementById('filterCategory').value;
             const subCatSelect = document.getElementById('filterSubCategory');
@@ -862,13 +885,27 @@
         }
 
         function saveProviderData() {
+            const name = document.getElementById('bizName').value;
+            if(!name) return alert("Please enter a Business Name.");
+            
+            const mainCat = document.getElementById('regMainCategory').value;
+            if(!mainCat) return alert("Please select a Main Category.");
+            
+            let subCat = document.getElementById('regSubCategory').value;
+            if(mainCat === 'Others') {
+                subCat = document.getElementById('regCustomCat').value;
+                if(!subCat) return alert("Please enter your Custom Category.");
+            } else if(!subCat) {
+                return alert("Please select a Sub-Category.");
+            }
+
             alert("Registration Data Saved! Triggering Pi Payment...");
             localStorage.setItem('isProvider', 'true');
             updateMerchantConsole();
             switchTab('merchant', null);
         }
 
-        // --- 3. Rendering & Filtering ---
+        // --- 4. Rendering & Filtering ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
@@ -955,7 +992,7 @@
             }
         }
 
-        // --- 4. Modal & Reviews ---
+        // --- 5. Modal & Reviews ---
         let currentRating = 0;
         let surveyData = {};
 
@@ -1001,7 +1038,7 @@
             closeModal();
         }
 
-        // --- 5. Merchant & Admin ---
+        // --- 6. Merchant Console ---
         function updateMerchantConsole() {
             const content = document.getElementById('merchantContent');
             if(localStorage.getItem('isProvider') === 'true') {
@@ -1030,6 +1067,7 @@
             }
         }
 
+        // --- 7. Admin Panel ---
         function accessAdminPanel() {
             const uid = prompt("Enter Admin UID to access panel:");
             if(uid === "Hadi0011" || uid === "admin") {
@@ -1041,10 +1079,8 @@
         }
 
         function switchAdminTab(tab, e) {
-                    function switchAdminTab(tab, e) {
             document.querySelectorAll('#tab-admin .help-tab-btn').forEach(b => b.classList.remove('active'));
             if(e) e.target.classList.add('active');
-            
             const content = document.getElementById('adminContent');
             
             if(tab === 'pending') {
@@ -1071,7 +1107,8 @@
                 `;
             }
         }
-        // --- 6. Chatbot ---
+
+        // --- 8. Chatbot ---
         function toggleChat(sender) {
             const w = document.getElementById('chatbotWindow');
             const headerTitle = document.getElementById('chatHeaderTitle');
@@ -1116,16 +1153,16 @@
             }, 600);
         }
 
-        // --- 7. Language Support ---
+        // --- 9. Language Support ---
         function changeLanguage(lang) {
             if(typeof translatePage === 'function') {
                 translatePage(lang);
             } else {
-                alert("Language pack not loaded.");
+                alert("Language pack not loaded yet.");
             }
         }
 
-        // --- 8. Pi SDK Integration ---
+        // --- 10. Pi SDK Integration ---
         if (window.Pi) { Pi.init({ version: "2.0" }); }
 
         async function loginWithPi() {
@@ -1134,7 +1171,6 @@
                     Pi.init({ version: "2.0" });
                     const auth = await Pi.authenticate(['username'], onIncompletePaymentFound);
                     
-                    // Exchange token with App Studio Backend
                     const response = await fetch("https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
