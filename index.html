@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hi Pi Network | Discover • Connect • Trade</title>
     
-    <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
-    <!-- Google Translate Script (Standard Translation) -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
@@ -46,7 +44,6 @@
         .notification-bell { position: relative; cursor: pointer; font-size: 20px; }
         .notification-dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; }
         
-        /* Styling Google Translate Widget */
         #google_translate_element { border: 2px solid var(--primary); border-radius: 8px; padding: 2px 5px; background: var(--bg-card); font-weight: bold; }
         .goog-te-gadget-simple { border: none !important; background-color: transparent !important; }
         .goog-te-gadget-simple .goog-te-menu-value span { color: var(--primary) !important; font-family: inherit !important; font-size: 13px;}
@@ -127,8 +124,8 @@
         .phone-input-group #phoneCode { width: 80px; padding: 12px; text-align: center; flex-shrink: 0; }
         .phone-input-group #regMobile { flex: 1; width: auto; }
 
-        .info-icon { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; cursor: pointer; font-weight: bold; }
-        .info-icon:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 0; background: #333; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; z-index: 10; margin-bottom: 8px; width: max-content; max-width: 200px; font-weight: normal;}
+        .info-icon { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; cursor: pointer; font-weight: bold; position: relative; }
+        .info-icon:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; z-index: 10; margin-bottom: 8px; width: max-content; max-width: 200px; font-weight: normal;}
 
         .upload-box { border: 2px dashed var(--border-color); padding: 20px; text-align: center; border-radius: 10px; color: var(--text-muted); cursor: pointer; background: var(--bg-body); position: relative; overflow: hidden; }
         .upload-box:hover { border-color: var(--primary); color: var(--primary); }
@@ -155,7 +152,6 @@
         .close-btn { position: absolute; top: 15px; right: 15px; background: var(--bg-body); border: none; font-size: 20px; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .close-btn:hover { background: var(--danger); color: white; }
 
-        /* Language Selection Modal on Load */
         #langModal .modal-content { text-align: center; }
         .lang-btn { display: block; width: 100%; padding: 15px; margin-bottom: 10px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 16px; cursor: pointer; transition: 0.2s; color: var(--text-main); font-weight: bold;}
         .lang-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
@@ -189,8 +185,8 @@
 </head>
 <body data-theme="light">
 
-    <!-- Language Selection Modal (Shows on first load) -->
-    <div class="modal-overlay" id="langModal" style="display: flex; z-index: 9999;">
+    <!-- Language Selection Modal (Controlled by JS) -->
+    <div class="modal-overlay" id="langModal" style="z-index: 9999;">
         <div class="modal-content" style="max-width: 400px;">
             <h2 style="color: var(--primary); margin-bottom: 10px;">Welcome to Hi Pi</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">Please select your preferred language.</p>
@@ -335,7 +331,7 @@
                         <label>Main Category</label>
                         <select id="regMainCategory" onchange="handleCategoryChange()" required><option value="">Select...</option></select>
                     </div>
-                    <!-- Subcategory Dropdown (Hidden by default) -->
+                    <!-- Subcategory Dropdown -->
                     <div class="form-group" id="subCatGroup" style="display: none;">
                         <label>Sub-Category</label>
                         <select id="regSubCategory"><option value="">Select...</option></select>
@@ -444,7 +440,7 @@
                     <div class="form-group">
                         <label>Mobile Number (Required)</label>
                         <div class="phone-input-group">
-                            <!-- Removed readonly so user can edit manually -->
+                            <!-- Phone code is now editable (removed readonly) -->
                             <input type="text" id="phoneCode" placeholder="+1">
                             <input type="tel" id="regMobile" placeholder="234 567 890">
                         </div>
@@ -666,7 +662,7 @@
         </div>
     </div>
         <script>
-        // --- 1. Internal Dictionary for Categories (Fixes the subcategory bug) ---
+        // --- 1. Internal Dictionary for Categories (No dependency on data.js) ---
         const internalCategories = {
             "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
             "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
@@ -686,13 +682,21 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Initialization ---
+        // --- 2. Initialization (Fixes the language modal stuck bug) ---
         document.addEventListener('DOMContentLoaded', () => {
-            populateGrid();
-            populateRegions();
-            populateCategories();
-            loadMockProviders();
-            updateMerchantConsole();
+            // Check if user has already selected a language
+            if (!localStorage.getItem('langSelected')) {
+                // Show language modal if not selected
+                document.getElementById('langModal').style.display = 'flex';
+            } else {
+                // Hide modal and load app
+                document.getElementById('langModal').style.display = 'none';
+                populateGrid();
+                populateRegions();
+                populateCategories();
+                loadMockProviders();
+                updateMerchantConsole();
+            }
         });
 
         function setTheme(theme) { 
@@ -723,15 +727,19 @@
             if(e) e.target.classList.add('active');
         }
 
-        // --- 3. Language Selection Logic ---
+        // --- 3. Language Selection Logic (Fixes the bug) ---
         function selectLanguage(langCode) {
-            document.getElementById('langModal').style.display = 'none';
-            // Standard Google Translate Cookie implementation
+            // Save selection to localStorage so it doesn't ask again
+            localStorage.setItem('langSelected', 'true');
+            
+            // Set Google Translate Cookie
             if (langCode === 'en') {
                 document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             } else {
                 document.cookie = `googtrans=/en/${langCode}; path=/;`;
             }
+            
+            // Reload page to apply translation
             window.location.reload();
         }
 
@@ -815,7 +823,7 @@
             document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
         }
 
-        // --- 6. Phone Code Logic (Auto + Manual) ---
+        // --- 6. Phone Code Logic (Auto + Manual fallback) ---
         function updatePhoneCode() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
@@ -828,11 +836,11 @@
             
             if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const country = globalCountriesData.find(c => c.name === selectedOption.value);
-                // Check if phone code exists and is not undefined
+                // Check if phone code exists and is valid
                 if (country && country.phone && country.phone !== 'undefined') {
                     phoneCodeInput.value = country.phone;
                 } else {
-                    phoneCodeInput.value = '+'; // Fallback for manual entry
+                    phoneCodeInput.value = '+'; // Fallback to manual entry
                 }
             } else {
                 phoneCodeInput.value = '+';
