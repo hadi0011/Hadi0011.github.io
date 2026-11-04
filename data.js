@@ -19,33 +19,34 @@ window.categorySubCats = {
     "Others": ["Custom Category"]
 };
 
-// Fetch ALL 250 countries from a reliable open-source database
 fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json')
     .then(response => response.json())
     .then(data => {
-        // Map the API data to our app's format
         window.globalCountriesData = data.map(country => ({
             name: country.name,
-            continent: country.region, // e.g., Asia, Europe, Americas, Africa, Oceania
+            continent: country.region, 
             phone: country.phone_code,
-            iso2: country.iso2 // We need this for fetching cities later
+            iso2: country.iso2 
         }));
         
-        // Since fetch is async, we need to re-trigger the UI population
-        if (typeof populateRegions === 'function') {
-            populateRegions();
-            populateCategories();
+        // Once loaded, populate the dropdowns if a region is already selected
+        const regRegion = document.getElementById('regRegion');
+        if(regRegion && regRegion.value && typeof populateRegCountries === 'function') {
+            populateRegCountries(regRegion.value);
+        }
+        
+        const filterRegion = document.getElementById('filterRegion');
+        if(filterRegion && filterRegion.value && filterRegion.value !== 'All' && typeof populateFilterCountries === 'function') {
+            populateFilterCountries(filterRegion.value);
         }
     })
     .catch(error => console.error("Error loading countries:", error));
 
-// Function to fetch cities dynamically based on country code
 window.fetchCitiesForCountry = async function(iso2, targetSelectId) {
     const select = document.getElementById(targetSelectId);
     select.innerHTML = '<option value="">Loading cities...</option>';
     
     try {
-        // Using a lightweight API to fetch cities for the specific country
         const response = await fetch(`https://countriesnow.space/api/v0.1/countries/cities`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -55,7 +56,6 @@ window.fetchCitiesForCountry = async function(iso2, targetSelectId) {
         
         select.innerHTML = '<option value="">Select City...</option>';
         if(data.error === false && data.data) {
-            // Sort cities alphabetically and add to dropdown
             data.data.sort().forEach(city => {
                 select.innerHTML += `<option value="${city}">${city}</option>`;
             });
@@ -63,7 +63,6 @@ window.fetchCitiesForCountry = async function(iso2, targetSelectId) {
             select.innerHTML = '<option value="">No cities found</option>';
         }
     } catch (error) {
-        console.error("Error loading cities:", error);
         select.innerHTML = '<option value="">Error loading cities</option>';
     }
 };
