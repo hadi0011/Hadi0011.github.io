@@ -835,40 +835,80 @@
             }
         }
 
-        function populateRegCities() {
+        async function populateRegCities() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
             if (!selectedOption || !selectedOption.value) return;
             
             const countryName = selectedOption.value;
-            const country = globalCountriesData.find(c => c.name === countryName);
             const citySelect = document.getElementById('regCity');
             
-            citySelect.innerHTML = '<option value="">Select City...</option>';
-            if(country && country.cities) {
-                country.cities.forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+            // Show loading state only in the city dropdown
+            citySelect.innerHTML = '<option value="">Loading cities...</option>';
+            
+            try {
+                const response = await fetch('https://countriesnow.space/api/v0.1/countries/cities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: countryName })
                 });
+                const data = await response.json();
+                
+                if (data.error === false && data.data && data.data.length > 0) {
+                    citySelect.innerHTML = '<option value="">Select City...</option>';
+                    data.data.sort().forEach(city => {
+                        citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                    });
+                } else {
+                    throw new Error("No cities found from API");
+                }
+            } catch (error) {
+                // Fallback to local data if API fails
+                const country = globalCountriesData.find(c => c.name === countryName);
+                citySelect.innerHTML = '<option value="">Select City...</option>';
+                if (country && country.cities) {
+                    country.cities.forEach(city => {
+                        citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                    });
+                }
             }
         }
-
-        function populateFilterCities() {
+                async function populateFilterCities() {
             const select = document.getElementById('filterCountry');
             const selectedOption = select.options[select.selectedIndex];
             if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return;
             
             const countryName = selectedOption.value;
-            const country = globalCountriesData.find(c => c.name === countryName);
             const citySelect = document.getElementById('filterCity');
             
-            citySelect.innerHTML = '<option value="All">All Cities</option>';
-            if(country && country.cities) {
-                country.cities.forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+            citySelect.innerHTML = '<option value="">Loading cities...</option>';
+            
+            try {
+                const response = await fetch('https://countriesnow.space/api/v0.1/countries/cities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: countryName })
                 });
+                const data = await response.json();
+                
+                if (data.error === false && data.data && data.data.length > 0) {
+                    citySelect.innerHTML = '<option value="All">All Cities</option>';
+                    data.data.sort().forEach(city => {
+                        citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                    });
+                } else {
+                    throw new Error("No cities found from API");
+                }
+            } catch (error) {
+                const country = globalCountriesData.find(c => c.name === countryName);
+                citySelect.innerHTML = '<option value="All">All Cities</option>';
+                if (country && country.cities) {
+                    country.cities.forEach(city => {
+                        citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                    });
+                }
             }
         }
-
         // --- 6. Custom Category Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
