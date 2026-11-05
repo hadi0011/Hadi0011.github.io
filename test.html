@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { padding: 20px; font-family: sans-serif; background: #f4f4f4; }
+select { display: block; width: 100%; padding: 15px; margin: 10px 0; font-size: 18px; border-radius: 8px; }
+#msg { padding: 20px; background: white; border-radius: 8px; margin-top: 20px; font-size: 16px; }
+</style>
+</head>
+<body>
+<h2>Location Test</h2>
+
+<select id="country">
+<option value="">Select Country...</option>
+</select>
+
+<select id="city">
+<option value="">Select City...</option>
+</select>
+
+<div id="msg">Select a country to start</div>
+
+<script>
+var DATA = {
+"Iran": ["Tehran", "Mashhad", "Isfahan", "Shiraz", "Tabriz"],
+"United States": ["New York", "Los Angeles", "Chicago", "Houston", "Miami"],
+"United Kingdom": ["London", "Manchester", "Birmingham"],
+"France": ["Paris", "Marseille", "Lyon"],
+"Germany": ["Berlin", "Munich", "Hamburg"]
+};
+
+var cSel = document.getElementById('country');
+var citySel = document.getElementById('city');
+var msg = document.getElementById('msg');
+
+var html = '<option value="">Select Country...</option>';
+for (var c in DATA) { html += '<option value="' + c + '">' + c + '</option>'; }
+cSel.innerHTML = html;
+msg.innerHTML = 'Countries loaded: ' + Object.keys(DATA).length;
+
+cSel.onchange = function() {
+var cities = DATA[this.value] || [];
+var h = '<option value="">Select City...</option>';
+for (var i = 0; i < cities.length; i++) { h += '<option value="' + cities[i] + '">' + cities[i] + '</option>'; }
+citySel.innerHTML = h;
+msg.innerHTML = '✅ Country: ' + this.value + ' — Cities: ' + cities.length;
+};
+
+citySel.onchange = function() {
+if (this.value) msg.innerHTML = '✅ Selected: ' + cSel.value + ' / ' + this.value;
+};
+</script>
+</body>
+</html>
