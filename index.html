@@ -6,7 +6,6 @@
     <title>Hi Pi Network | Discover • Connect • Trade</title>
     
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script src="location-data.js"></script>
     
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -188,8 +187,6 @@
 
         .clear-btn { background: transparent; color: var(--danger); border: 2px solid var(--danger); padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .clear-btn:hover { background: var(--danger); color: white; }
-
-        .other-city-input { margin-top: 8px; display: none; }
     </style>
 </head>
 <body data-theme="light">
@@ -273,21 +270,33 @@
                 <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
                     <div class="search-bar" style="flex: 1;"><input type="text" id="serviceSearchInput" placeholder="Search by name..."></div>
                     
-                    <select class="filter-dropdown" id="filterContinent">
-                        <option value="">All Continents</option>
+                    <!-- Country Select (Simple, 20 countries only) -->
+                    <select class="filter-dropdown" id="filterCountry">
+                        <option value="">All Countries</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="France">France</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Iran">Iran</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Japan">Japan</option>
+                        <option value="China">China</option>
+                        <option value="India">India</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Russia">Russia</option>
+                        <option value="Turkey">Turkey</option>
+                        <option value="Indonesia">Indonesia</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="Spain">Spain</option>
+                        <option value="Italy">Italy</option>
+                        <option value="Netherlands">Netherlands</option>
+                        <option value="Saudi Arabia">Saudi Arabia</option>
                     </select>
 
-                    <select class="filter-dropdown" id="filterCountry" disabled>
-                        <option value="">Select Country...</option>
-                    </select>
-
-                    <select class="filter-dropdown" id="filterCity" disabled>
-                        <option value="">Select City...</option>
-                    </select>
-
-                    <div class="other-city-input" id="filterOtherCityWrap" style="width: 100%;">
-                        <input type="text" class="filter-dropdown" id="filterOtherCity" placeholder="Type your city name...">
-                    </div>
+                    <!-- City Input (Text only) -->
+                    <input type="text" class="filter-dropdown" id="filterCity" placeholder="Type city name...">
                     
                     <select class="filter-dropdown" id="filterCategory" onchange="updateSubCategories()"><option value="All">All Categories</option></select>
                     <select class="filter-dropdown" id="filterSubCategory"><option value="All">All Subcategories</option></select>
@@ -335,16 +344,36 @@
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group"><label>Continent</label><select id="regContinent"><option value="">Select Continent...</option></select></div>
-                    <div class="form-group"><label>Country</label><select id="regCountry" disabled><option value="">Select Country...</option></select></div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>City <span class="info-icon" data-tooltip="Choose from list or select 'Other' to add your city.">?</span></label>
-                        <select id="regCity" disabled><option value="">Select City...</option></select>
-                        <input type="text" id="regOtherCity" class="other-city-input" placeholder="Type your city name...">
+                        <label>Country</label>
+                        <select id="regCountry">
+                            <option value="">Select Country...</option>
+                            <option value="United States">United States</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="France">France</option>
+                            <option value="Germany">Germany</option>
+                            <option value="Iran">Iran</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Japan">Japan</option>
+                            <option value="China">China</option>
+                            <option value="India">India</option>
+                            <option value="Brazil">Brazil</option>
+                            <option value="Russia">Russia</option>
+                            <option value="Turkey">Turkey</option>
+                            <option value="Indonesia">Indonesia</option>
+                            <option value="Nigeria">Nigeria</option>
+                            <option value="South Africa">South Africa</option>
+                            <option value="Spain">Spain</option>
+                            <option value="Italy">Italy</option>
+                            <option value="Netherlands">Netherlands</option>
+                            <option value="Saudi Arabia">Saudi Arabia</option>
+                        </select>
                     </div>
-                    <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
+                    <div class="form-group">
+                        <label>City <span class="info-icon" data-tooltip="Type your city name directly.">?</span></label>
+                        <input type="text" id="regCity" placeholder="e.g., Tehran">
+                    </div>
                 </div>
                 <div class="form-group"><label>Full Address</label><input type="text" id="regAddress" placeholder="123 Main St..."></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -387,7 +416,7 @@
                 <div class="help-box"><h3>🖼️ Image Upload Rules</h3><p><strong>Logo:</strong> 1 image, max 500KB, format JPG/PNG/WebP.</p><p><strong>Gallery:</strong> Basic plan allows up to 5 images. Pro/Featured plans allow up to 10 images. Each image max 2MB, format JPG/PNG/WebP.</p><p><strong>Default Image:</strong> Choose one image from your gallery to be displayed on your provider card in search results.</p><p><strong>How to upgrade:</strong> Go to Merchant Console and choose Pro (15 Pi) or Featured (25 Pi) to increase your gallery limit to 10 images.</p></div>
             </div>
             <div class="help-tab-content" id="help-rules"><div class="help-box"><h3>📜 Review Rules</h3><p>1. Reviews must be based on real experiences.</p><p>2. No spam, offensive language, or external links.</p><p>3. No conflicts of interest (reviewing your own business).</p></div><div class="help-box"><h3>⚖️ Dispute Resolution & Admin Authority</h3><p>To ensure a fair ecosystem, if a review is reported as fake or abusive, the Admin will review the evidence (such as blockchain transaction history).</p><p><strong>The Admin acts as the final arbiter to maintain community trust. Users and Providers agree to respect and comply with the Admin's final decision to avoid endless disputes. The Admin has the right to ban users or remove providers who violate the rules.</strong></p></div></div>
-            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p><p style="margin-top: 10px;"><strong>Q: My city is not in the list. What should I do?</strong><br>A: Select "Other / Add city" from the city dropdown and type your city name.</p></div></div>
+            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p><p style="margin-top: 10px;"><strong>Q: My city is not in the list. What should I do?</strong><br>A: Simply type your city name in the City field. You don't need to select from a list.</p></div></div>
             <div class="help-tab-content" id="help-contact"><div class="help-box"><h3>📞 Contact Us</h3><div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"><a href="https://t.me/MainHadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">💬 Telegram: @MainHadi0011</a><a href="https://minepi.com/Hadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">🌐 Pi Account: minepi.com/Hadi0011</a><a href="#" style="color: var(--primary); font-weight: bold; text-decoration: none;">🔥 Fireside: @Hadi0011</a></div><div style="margin-top: 30px; border-top: 1px dashed var(--border-color); padding-top: 20px;"><button class="btn" onclick="accessAdminPanel()" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px;">Admin Access</button></div></div></div>
         </div>
 
@@ -468,66 +497,7 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Location Logic (Simple Selects) ---
-        function populateContinentSelect(selectId) {
-            const sel = document.getElementById(selectId);
-            let html = '<option value="">All Continents</option>';
-            const continents = Object.keys(window.locationData || {});
-            continents.forEach(c => { html += `<option value="${c}">${c}</option>`; });
-            sel.innerHTML = html;
-        }
-
-        function populateRegContinentSelect() {
-            const sel = document.getElementById('regContinent');
-            let html = '<option value="">Select Continent...</option>';
-            const continents = Object.keys(window.locationData || {});
-            continents.forEach(c => { html += `<option value="${c}">${c}</option>`; });
-            sel.innerHTML = html;
-        }
-
-        function populateCountriesByContinent(continent, countrySelectId, citySelectId, otherCityId) {
-            const countrySel = document.getElementById(countrySelectId);
-            const citySel = document.getElementById(citySelectId);
-            const otherInput = document.getElementById(otherCityId);
-            
-            if (otherInput) otherInput.style.display = 'none';
-            citySel.innerHTML = '<option value="">Select City...</option>';
-            citySel.disabled = true;
-
-            if (!continent) {
-                countrySel.innerHTML = '<option value="">Select Country...</option>';
-                countrySel.disabled = true;
-                return;
-            }
-
-            const countries = Object.keys(window.locationData[continent] || {}).sort();
-            let html = '<option value="">Select Country...</option>';
-            countries.forEach(c => { html += `<option value="${c}">${c}</option>`; });
-            countrySel.innerHTML = html;
-            countrySel.disabled = false;
-        }
-
-        function populateCitiesByCountry(continent, country, citySelectId, otherCityId) {
-            const citySel = document.getElementById(citySelectId);
-            const otherInput = document.getElementById(otherCityId);
-            
-            citySel.innerHTML = '<option value="">Select City...</option>';
-            if (otherInput) otherInput.style.display = 'none';
-            
-            if (!continent || !country) {
-                citySel.disabled = true;
-                return;
-            }
-
-            const cities = (window.locationData[continent] && window.locationData[continent][country]) ? window.locationData[continent][country] : [];
-            let html = '<option value="">Select City...</option>';
-            cities.forEach(city => { html += `<option value="${city}">${city}</option>`; });
-            html += '<option value="__other__">Other / Add city</option>';
-            citySel.innerHTML = html;
-            citySel.disabled = false;
-        }
-
-        // --- 3. Initialization ---
+        // --- 2. Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('langSelected')) {
                 document.getElementById('langModal').style.display = 'flex';
@@ -537,63 +507,10 @@
             
             populateGrid();
             populateCategories();
-            populateContinentSelect('filterContinent');
-            populateRegContinentSelect();
             loadMockProviders();
             updateMerchantConsole();
-            setupLocationListeners();
         });
 
-        function setupLocationListeners() {
-            // Advanced Search
-            const filterContinent = document.getElementById('filterContinent');
-            const filterCountry = document.getElementById('filterCountry');
-            const filterCity = document.getElementById('filterCity');
-            const filterOtherCity = document.getElementById('filterOtherCity');
-            const filterOtherCityWrap = document.getElementById('filterOtherCityWrap');
-
-            filterContinent.addEventListener('change', (e) => {
-                populateCountriesByContinent(e.target.value, 'filterCountry', 'filterCity', 'filterOtherCity');
-            });
-            filterCountry.addEventListener('change', (e) => {
-                const continent = filterContinent.value;
-                populateCitiesByCountry(continent, e.target.value, 'filterCity', 'filterOtherCity');
-            });
-            filterCity.addEventListener('change', (e) => {
-                if (e.target.value === '__other__') {
-                    filterOtherCityWrap.style.display = 'block';
-                    filterOtherCity.focus();
-                } else {
-                    filterOtherCityWrap.style.display = 'none';
-                    filterOtherCity.value = '';
-                }
-            });
-
-            // Register
-            const regContinent = document.getElementById('regContinent');
-            const regCountry = document.getElementById('regCountry');
-            const regCity = document.getElementById('regCity');
-            const regOtherCity = document.getElementById('regOtherCity');
-
-            regContinent.addEventListener('change', (e) => {
-                populateCountriesByContinent(e.target.value, 'regCountry', 'regCity', 'regOtherCity');
-            });
-            regCountry.addEventListener('change', (e) => {
-                const continent = regContinent.value;
-                populateCitiesByCountry(continent, e.target.value, 'regCity', 'regOtherCity');
-            });
-            regCity.addEventListener('change', (e) => {
-                if (e.target.value === '__other__') {
-                    regOtherCity.style.display = 'block';
-                    regOtherCity.focus();
-                } else {
-                    regOtherCity.style.display = 'none';
-                    regOtherCity.value = '';
-                }
-            });
-        }
-
-        // --- 4. Other Logic ---
         function populateGrid() {
             const grid = document.getElementById('homeCategoryGrid');
             const icons = { "Food & Beverage": "🍔", "Retail & Shopping": "🛍️", "Health & Medical": "🏥", "Professional Services": "💼", "IT & Technology": "💻", "Finance & Exchange": "💱", "Travel & Hospitality": "✈️", "Transportation": "🚕", "Real Estate": "🏠", "Education": "🎓", "Home & Personal Services": "🔧", "Sports & Fitness": "🏋️", "Entertainment & Events": "🎬", "Beauty & Wellness": "💆", "Automotive": "🚗", "Others": "📦" };
@@ -710,20 +627,20 @@
             switchTab('merchant', null);
         }
 
-        // --- 5. Mock Data & Filtering ---
+        // --- 3. Mock Data & Filtering ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
         }
 
         const mockProviders = [
-            { id: 1, name: "New York Health", cat: "Health & Medical", subCat: "Doctors & Clinics", continent: "North America", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
-            { id: 2, name: "London IT Hub", cat: "IT & Technology", subCat: "App Development", continent: "Europe", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development and dApp consulting.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
-            { id: 3, name: "Jakarta Cafe", cat: "Food & Beverage", subCat: "Cafe", continent: "Asia", country: "Indonesia", city: "Jakarta", rating: 4.5, reviews: 210, featured: true, desc: "Traditional Indonesian coffee and snacks.", hours: "8 AM - 10 PM (Local)", phone: "+62 21 1234 5678" },
-            { id: 4, name: "Lagos Tech", cat: "IT & Technology", subCat: "Web Design", continent: "Africa", country: "Nigeria", city: "Lagos", rating: 4.3, reviews: 78, featured: false, desc: "Mobile app development and consulting.", hours: "9 AM - 5 PM (Local)", phone: "+234 1 234 5678" },
-            { id: 5, name: "Berlin Bakery", cat: "Food & Beverage", subCat: "Bakery", continent: "Europe", country: "Germany", city: "Berlin", rating: 4.8, reviews: 156, featured: false, desc: "Fresh German breads and pastries.", hours: "7 AM - 6 PM (Local)", phone: "+49 30 123456" },
-            { id: 6, name: "Tehran IT Solutions", cat: "IT & Technology", subCat: "IT Support", continent: "Asia", country: "Iran", city: "Tehran", rating: 4.6, reviews: 45, featured: false, desc: "Local IT support and networking.", hours: "9 AM - 6 PM (Local)", phone: "+98 21 1234 5678" },
-            { id: 7, name: "Paris Fashion", cat: "Retail & Shopping", subCat: "Fashion", continent: "Europe", country: "France", city: "Paris", rating: 4.4, reviews: 67, featured: false, desc: "High-end fashion retail.", hours: "10 AM - 8 PM (Local)", phone: "+33 1 2345 6789" }
+            { id: 1, name: "New York Health", cat: "Health & Medical", subCat: "Doctors & Clinics", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
+            { id: 2, name: "London IT Hub", cat: "IT & Technology", subCat: "App Development", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development and dApp consulting.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
+            { id: 3, name: "Jakarta Cafe", cat: "Food & Beverage", subCat: "Cafe", country: "Indonesia", city: "Jakarta", rating: 4.5, reviews: 210, featured: true, desc: "Traditional Indonesian coffee and snacks.", hours: "8 AM - 10 PM (Local)", phone: "+62 21 1234 5678" },
+            { id: 4, name: "Lagos Tech", cat: "IT & Technology", subCat: "Web Design", country: "Nigeria", city: "Lagos", rating: 4.3, reviews: 78, featured: false, desc: "Mobile app development and consulting.", hours: "9 AM - 5 PM (Local)", phone: "+234 1 234 5678" },
+            { id: 5, name: "Berlin Bakery", cat: "Food & Beverage", subCat: "Bakery", country: "Germany", city: "Berlin", rating: 4.8, reviews: 156, featured: false, desc: "Fresh German breads and pastries.", hours: "7 AM - 6 PM (Local)", phone: "+49 30 123456" },
+            { id: 6, name: "Tehran IT Solutions", cat: "IT & Technology", subCat: "IT Support", country: "Iran", city: "Tehran", rating: 4.6, reviews: 45, featured: false, desc: "Local IT support and networking.", hours: "9 AM - 6 PM (Local)", phone: "+98 21 1234 5678" },
+            { id: 7, name: "Paris Fashion", cat: "Retail & Shopping", subCat: "Fashion", country: "France", city: "Paris", rating: 4.4, reviews: 67, featured: false, desc: "High-end fashion retail.", hours: "10 AM - 8 PM (Local)", phone: "+33 1 2345 6789" }
         ];
 
         function renderProviders(containerId, providers) {
@@ -771,21 +688,15 @@
                 return;
             }
             const text = document.getElementById('serviceSearchInput').value.toLowerCase();
-            const continent = document.getElementById('filterContinent').value;
             const country = document.getElementById('filterCountry').value;
-            const citySel = document.getElementById('filterCity');
-            let city = citySel.value;
-            if (city === '__other__') {
-                city = document.getElementById('filterOtherCity').value.trim();
-            }
+            const city = document.getElementById('filterCity').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
             const subCat = document.getElementById('filterSubCategory').value;
 
             let filtered = mockProviders.filter(p => {
                 if (text && !p.name.toLowerCase().includes(text)) return false;
-                if (continent && p.continent !== continent) return false;
                 if (country && p.country !== country) return false;
-                if (city && !p.city.toLowerCase().includes(city.toLowerCase())) return false;
+                if (city && !p.city.toLowerCase().includes(city)) return false;
                 if (cat && cat !== 'All' && p.cat !== cat) return false;
                 if (subCat && subCat !== 'All' && p.subCat !== subCat) return false;
                 return true;
@@ -801,13 +712,8 @@
 
         function clearFilters() {
             document.getElementById('serviceSearchInput').value = '';
-            document.getElementById('filterContinent').value = '';
-            document.getElementById('filterCountry').innerHTML = '<option value="">Select Country...</option>';
-            document.getElementById('filterCountry').disabled = true;
-            document.getElementById('filterCity').innerHTML = '<option value="">Select City...</option>';
-            document.getElementById('filterCity').disabled = true;
-            document.getElementById('filterOtherCity').value = '';
-            document.getElementById('filterOtherCityWrap').style.display = 'none';
+            document.getElementById('filterCountry').value = '';
+            document.getElementById('filterCity').value = '';
             document.getElementById('filterCategory').value = 'All';
             document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
             document.getElementById('filterSort').value = 'rating';
@@ -831,7 +737,7 @@
             }
         }
 
-        // --- 6. Modal & Reviews ---
+        // --- 4. Modal & Reviews ---
         let currentRating = 0;
         let surveyData = {};
 
@@ -874,7 +780,7 @@
             closeModal();
         }
 
-        // --- 7. Merchant Console ---
+        // --- 5. Merchant Console ---
         function updateMerchantConsole() {
             const content = document.getElementById('merchantContent');
             if(localStorage.getItem('isProvider') === 'true') {
@@ -896,7 +802,7 @@
             }
         }
 
-        // --- 8. Admin Panel ---
+        // --- 6. Admin Panel ---
         function accessAdminPanel() {
             const uid = prompt("Enter Admin UID to access panel:");
             if(uid === "Hadi0011" || uid === "admin") { switchTab('admin', null); alert("Access Granted. Welcome Admin."); }
@@ -928,7 +834,7 @@
             document.getElementById('chatReplyBox').style.display = 'none';
         }
 
-        // --- 9. Chatbot ---
+        // --- 7. Chatbot ---
         function toggleChat(sender) {
             const w = document.getElementById('chatbotWindow');
             const headerTitle = document.getElementById('chatHeaderTitle');
@@ -962,14 +868,14 @@
                 if (t.includes('reject') || t.includes('spam')) reply = "Reviews must be real, at least 10 chars, and contain no links.";
                 if (t.includes('survey')) reply = "It's 4 short questions after you review. It helps us verify fake reviews.";
                 if (t.includes('❓') || t.includes('icon')) reply = "Tap the ❓ icon next to any confusing field to see a quick explanation.";
-                if (t.includes('city') || t.includes('location')) reply = "Choose a Continent, then Country, then City. If your city is not listed, select 'Other / Add city' and type it.";
+                if (t.includes('city') || t.includes('location')) reply = "Choose a Country, then simply type your City name in the text field. No need to wait for lists to load!";
                 if (t.includes('image') || t.includes('photo') || t.includes('logo')) reply = "Logo: max 500KB. Gallery: Basic up to 5, Pro/Featured up to 10. Each max 2MB. Check Help > How It Works for details.";
                 messages.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
                 messages.scrollTop = messages.scrollHeight;
             }, 600);
         }
 
-        // --- 10. Pi SDK Integration ---
+        // --- 8. Pi SDK Integration ---
         if (window.Pi) { Pi.init({ version: "2.0" }); }
 
         async function loginWithPi() {
@@ -991,7 +897,7 @@
 
         function onIncompletePaymentFound(payment) { console.log("Incomplete payment found", payment); }
 
-        // --- 11. Global scope exposure for inline handlers ---
+        // --- 9. Global scope exposure for inline handlers ---
         window.switchTab = switchTab;
         window.setTheme = setTheme;
         window.selectLanguage = selectLanguage;
