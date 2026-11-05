@@ -6,7 +6,7 @@
     <title>Hi Pi Network | Discover • Connect • Trade</title>
     
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script src="cities-light.js"></script>
+    <script src="location-data.js"></script>
     
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -183,28 +183,17 @@
         .quick-reply { background: var(--bg-card); border: 1px solid var(--primary); color: var(--primary); padding: 6px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; font-family: inherit; }
         .quick-reply:hover { background: var(--primary); color: white; }
 
-        /* --- Virtual Scrolling Combobox --- */
-        .combobox-wrapper { position: relative; }
-        .combobox-input { width: 100%; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
-        .combobox-input:focus { border-color: var(--primary); }
-        .combobox-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: var(--shadow); z-index: 500; max-height: 200px; overflow-y: auto; margin-top: 4px; display: none; padding: 4px 0; }
-        .combobox-list.show { display: block; }
-        .combobox-spacer { height: 0; } /* used for virtual scroll */
-        .combobox-option { padding: 10px 15px; cursor: pointer; font-size: 14px; }
-        .combobox-option:hover, .combobox-option.active { background: rgba(92, 45, 145, 0.1); color: var(--primary); }
-        .combobox-empty { padding: 10px 15px; color: var(--text-muted); font-size: 13px; }
-        
         .gallery-preview-item { position: relative; display: inline-block; margin: 5px; }
         .gallery-preview-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); }
-        .gallery-preview-item .remove-img { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; line-height: 1; }
 
-        .clear-btn { background: transparent; color: var(--danger); border: 2px solid var(--danger); padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .clear-btn { background: transparent; color: var(--danger); border: 2px solid var(--danger); padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .clear-btn:hover { background: var(--danger); color: white; }
+
+        .other-city-input { margin-top: 8px; display: none; }
     </style>
 </head>
 <body data-theme="light">
 
-    <!-- Language Selection Modal -->
     <div class="modal-overlay" id="langModal" style="z-index: 9999; display: none;">
         <div class="modal-content" style="max-width: 400px;">
             <h2 style="color: var(--primary); margin-bottom: 10px;">Welcome to Hi Pi</h2>
@@ -284,13 +273,20 @@
                 <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
                     <div class="search-bar" style="flex: 1;"><input type="text" id="serviceSearchInput" placeholder="Search by name..."></div>
                     
-                    <select class="filter-dropdown" id="filterCountry">
+                    <select class="filter-dropdown" id="filterContinent">
+                        <option value="">All Continents</option>
+                    </select>
+
+                    <select class="filter-dropdown" id="filterCountry" disabled>
                         <option value="">Select Country...</option>
                     </select>
 
-                    <div class="combobox-wrapper" style="min-width: 120px; flex: 1;">
-                        <input type="text" class="combobox-input" id="filterCity" placeholder="Type or select city..." autocomplete="off">
-                        <div class="combobox-list" id="filterCityList"></div>
+                    <select class="filter-dropdown" id="filterCity" disabled>
+                        <option value="">Select City...</option>
+                    </select>
+
+                    <div class="other-city-input" id="filterOtherCityWrap" style="width: 100%;">
+                        <input type="text" class="filter-dropdown" id="filterOtherCity" placeholder="Type your city name...">
                     </div>
                     
                     <select class="filter-dropdown" id="filterCategory" onchange="updateSubCategories()"><option value="All">All Categories</option></select>
@@ -323,27 +319,32 @@
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Images</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Logo <span class="info-icon" data-tooltip="Upload 1 image. Max: 500KB. Format: JPG, PNG, WebP.">?</span></label>
+                        <label>Logo <span class="info-icon" data-tooltip="1 image, max 500KB, JPG/PNG/WebP.">?</span></label>
                         <div class="upload-box">📷 Click to upload Logo<input type="file" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this, 'logoPreview')"><img id="logoPreview" style="display:none; width: 50px; height: 50px; margin: 10px auto 0; border-radius: 5px;"></div>
                     </div>
                     <div class="form-group">
-                        <label>Gallery <span class="info-icon" data-tooltip="Basic plan: max 5 images. Pro/Featured: max 10 images. Max size: 2MB each.">?</span></label>
+                        <label>Gallery <span class="info-icon" data-tooltip="Basic: max 5. Pro/Featured: max 10. Each max 2MB.">?</span></label>
                         <div class="upload-box">🖼️ Upload Photos<input type="file" accept="image/jpeg, image/png, image/webp" multiple onchange="previewGallery(this)"></div>
                         <div id="galleryPreviewContainer" style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;"></div>
                     </div>
                 </div>
                 <div class="form-group" id="defaultImageGroup" style="display: none;">
-                    <label>Select Default Image (Cover) <span class="info-icon" data-tooltip="This image will be displayed on your provider card.">?</span></label>
+                    <label>Select Default Image (Cover) <span class="info-icon" data-tooltip="This image appears on your provider card.">?</span></label>
                     <select id="defaultImageSelector"><option value="">Select an image...</option></select>
                 </div>
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group"><label>Country</label><select id="regCountry"><option value="">Select Country...</option></select></div>
+                    <div class="form-group"><label>Continent</label><select id="regContinent"><option value="">Select Continent...</option></select></div>
+                    <div class="form-group"><label>Country</label><select id="regCountry" disabled><option value="">Select Country...</option></select></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>City <span class="info-icon" data-tooltip="Select a country first, then choose or type your city.">?</span></label>
-                        <div class="combobox-wrapper"><input type="text" class="combobox-input" id="regCity" placeholder="Type or select city..." autocomplete="off" disabled><div class="combobox-list" id="regCityList"></div></div>
+                        <label>City <span class="info-icon" data-tooltip="Choose from list or select 'Other' to add your city.">?</span></label>
+                        <select id="regCity" disabled><option value="">Select City...</option></select>
+                        <input type="text" id="regOtherCity" class="other-city-input" placeholder="Type your city name...">
                     </div>
+                    <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
                 </div>
                 <div class="form-group"><label>Full Address</label><input type="text" id="regAddress" placeholder="123 Main St..."></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -380,9 +381,13 @@
                 <button class="help-tab-btn" onclick="switchHelpTab('contact', event)">Contact</button>
             </div>
             <div class="help-tab-content active" id="help-about"><div class="help-box"><h3>🌟 About Hi Pi Network</h3><p>Hi Pi Network is the first decentralized trust and reputation system built for the Pi Network ecosystem. Discover, Connect, and Trade with confidence.</p><div style="margin-top: 15px; display: flex; justify-content: space-between;"><span>Version</span><strong>v1.0.0-BETA</strong></div></div></div>
-            <div class="help-tab-content" id="help-howto"><div class="help-box"><h3>🛠️ How It Works (For Pioneers)</h3><p>1. <strong>Search:</strong> Find services by category, country, or city.</p><p>2. <strong>Vote:</strong> Rate providers from 1 to 5 stars. Your vote weight depends on your Tier level.</p><p>3. <strong>Quick Survey:</strong> Answer 4 short questions to help verify the provider's quality.</p><p>4. <strong>Report:</strong> If you see a fake or abusive review, tap the 🚩 Report button.</p></div><div class="help-box"><h3>🏪 How It Works (For Providers)</h3><p>1. <strong>Register:</strong> Fill the form and pay the 5 Pi fee.</p><p>2. <strong>Get Verified:</strong> Admin will review your documents.</p><p>3. <strong>Manage:</strong> Use the Merchant Console to reply to reviews and upgrade your subscription (Pro 15 Pi / Featured 25 Pi).</p></div></div>
+            <div class="help-tab-content" id="help-howto">
+                <div class="help-box"><h3>🛠️ How It Works (For Pioneers)</h3><p>1. <strong>Search:</strong> Find services by category, country, or city.</p><p>2. <strong>Vote:</strong> Rate providers from 1 to 5 stars. Your vote weight depends on your Tier level.</p><p>3. <strong>Quick Survey:</strong> Answer 4 short questions to help verify the provider's quality.</p><p>4. <strong>Report:</strong> If you see a fake or abusive review, tap the 🚩 Report button.</p></div>
+                <div class="help-box"><h3>🏪 How It Works (For Providers)</h3><p>1. <strong>Register:</strong> Fill the form and pay the 5 Pi fee.</p><p>2. <strong>Get Verified:</strong> Admin will review your documents.</p><p>3. <strong>Manage:</strong> Use the Merchant Console to reply to reviews and upgrade your subscription (Pro 15 Pi / Featured 25 Pi).</p></div>
+                <div class="help-box"><h3>🖼️ Image Upload Rules</h3><p><strong>Logo:</strong> 1 image, max 500KB, format JPG/PNG/WebP.</p><p><strong>Gallery:</strong> Basic plan allows up to 5 images. Pro/Featured plans allow up to 10 images. Each image max 2MB, format JPG/PNG/WebP.</p><p><strong>Default Image:</strong> Choose one image from your gallery to be displayed on your provider card in search results.</p><p><strong>How to upgrade:</strong> Go to Merchant Console and choose Pro (15 Pi) or Featured (25 Pi) to increase your gallery limit to 10 images.</p></div>
+            </div>
             <div class="help-tab-content" id="help-rules"><div class="help-box"><h3>📜 Review Rules</h3><p>1. Reviews must be based on real experiences.</p><p>2. No spam, offensive language, or external links.</p><p>3. No conflicts of interest (reviewing your own business).</p></div><div class="help-box"><h3>⚖️ Dispute Resolution & Admin Authority</h3><p>To ensure a fair ecosystem, if a review is reported as fake or abusive, the Admin will review the evidence (such as blockchain transaction history).</p><p><strong>The Admin acts as the final arbiter to maintain community trust. Users and Providers agree to respect and comply with the Admin's final decision to avoid endless disputes. The Admin has the right to ban users or remove providers who violate the rules.</strong></p></div></div>
-            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p></div></div>
+            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p><p style="margin-top: 10px;"><strong>Q: My city is not in the list. What should I do?</strong><br>A: Select "Other / Add city" from the city dropdown and type your city name.</p></div></div>
             <div class="help-tab-content" id="help-contact"><div class="help-box"><h3>📞 Contact Us</h3><div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"><a href="https://t.me/MainHadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">💬 Telegram: @MainHadi0011</a><a href="https://minepi.com/Hadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">🌐 Pi Account: minepi.com/Hadi0011</a><a href="#" style="color: var(--primary); font-weight: bold; text-decoration: none;">🔥 Fireside: @Hadi0011</a></div><div style="margin-top: 30px; border-top: 1px dashed var(--border-color); padding-top: 20px;"><button class="btn" onclick="accessAdminPanel()" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px;">Admin Access</button></div></div></div>
         </div>
 
@@ -463,7 +468,66 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Initialization ---
+        // --- 2. Location Logic (Simple Selects) ---
+        function populateContinentSelect(selectId) {
+            const sel = document.getElementById(selectId);
+            let html = '<option value="">All Continents</option>';
+            const continents = Object.keys(window.locationData || {});
+            continents.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+            sel.innerHTML = html;
+        }
+
+        function populateRegContinentSelect() {
+            const sel = document.getElementById('regContinent');
+            let html = '<option value="">Select Continent...</option>';
+            const continents = Object.keys(window.locationData || {});
+            continents.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+            sel.innerHTML = html;
+        }
+
+        function populateCountriesByContinent(continent, countrySelectId, citySelectId, otherCityId) {
+            const countrySel = document.getElementById(countrySelectId);
+            const citySel = document.getElementById(citySelectId);
+            const otherInput = document.getElementById(otherCityId);
+            
+            if (otherInput) otherInput.style.display = 'none';
+            citySel.innerHTML = '<option value="">Select City...</option>';
+            citySel.disabled = true;
+
+            if (!continent) {
+                countrySel.innerHTML = '<option value="">Select Country...</option>';
+                countrySel.disabled = true;
+                return;
+            }
+
+            const countries = Object.keys(window.locationData[continent] || {}).sort();
+            let html = '<option value="">Select Country...</option>';
+            countries.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+            countrySel.innerHTML = html;
+            countrySel.disabled = false;
+        }
+
+        function populateCitiesByCountry(continent, country, citySelectId, otherCityId) {
+            const citySel = document.getElementById(citySelectId);
+            const otherInput = document.getElementById(otherCityId);
+            
+            citySel.innerHTML = '<option value="">Select City...</option>';
+            if (otherInput) otherInput.style.display = 'none';
+            
+            if (!continent || !country) {
+                citySel.disabled = true;
+                return;
+            }
+
+            const cities = (window.locationData[continent] && window.locationData[continent][country]) ? window.locationData[continent][country] : [];
+            let html = '<option value="">Select City...</option>';
+            cities.forEach(city => { html += `<option value="${city}">${city}</option>`; });
+            html += '<option value="__other__">Other / Add city</option>';
+            citySel.innerHTML = html;
+            citySel.disabled = false;
+        }
+
+        // --- 3. Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('langSelected')) {
                 document.getElementById('langModal').style.display = 'flex';
@@ -473,233 +537,63 @@
             
             populateGrid();
             populateCategories();
-            populateCountrySelects();
-            setupCityComboboxes();
+            populateContinentSelect('filterContinent');
+            populateRegContinentSelect();
             loadMockProviders();
             updateMerchantConsole();
+            setupLocationListeners();
         });
 
-        function populateCountrySelects() {
+        function setupLocationListeners() {
+            // Advanced Search
+            const filterContinent = document.getElementById('filterContinent');
             const filterCountry = document.getElementById('filterCountry');
-            const regCountry = document.getElementById('regCountry');
-            
-            const countries = Object.keys(window.citiesLight || {}).sort();
-            let optionsHtml = '<option value="">Select Country...</option>';
-            countries.forEach(c => {
-                optionsHtml += `<option value="${c}">${c}</option>`;
-            });
-            
-            filterCountry.innerHTML = optionsHtml;
-            regCountry.innerHTML = optionsHtml;
+            const filterCity = document.getElementById('filterCity');
+            const filterOtherCity = document.getElementById('filterOtherCity');
+            const filterOtherCityWrap = document.getElementById('filterOtherCityWrap');
 
-            // Add change listeners
+            filterContinent.addEventListener('change', (e) => {
+                populateCountriesByContinent(e.target.value, 'filterCountry', 'filterCity', 'filterOtherCity');
+            });
             filterCountry.addEventListener('change', (e) => {
-                const country = e.target.value;
-                const cityInput = document.getElementById('filterCity');
-                const cityList = document.getElementById('filterCityList');
-                cityInput.value = '';
-                if (comboboxInstances.filterCity) comboboxInstances.filterCity.updateOptions([]);
-                if (!country) {
-                    cityInput.disabled = true;
-                    cityInput.placeholder = "Select country first...";
-                    return;
+                const continent = filterContinent.value;
+                populateCitiesByCountry(continent, e.target.value, 'filterCity', 'filterOtherCity');
+            });
+            filterCity.addEventListener('change', (e) => {
+                if (e.target.value === '__other__') {
+                    filterOtherCityWrap.style.display = 'block';
+                    filterOtherCity.focus();
+                } else {
+                    filterOtherCityWrap.style.display = 'none';
+                    filterOtherCity.value = '';
                 }
-                cityInput.disabled = false;
-                cityInput.placeholder = "Type or select city...";
-                const cities = (window.citiesLight && window.citiesLight[country]) ? window.citiesLight[country] : [];
-                if (comboboxInstances.filterCity) comboboxInstances.filterCity.updateOptions(cities);
             });
 
+            // Register
+            const regContinent = document.getElementById('regContinent');
+            const regCountry = document.getElementById('regCountry');
+            const regCity = document.getElementById('regCity');
+            const regOtherCity = document.getElementById('regOtherCity');
+
+            regContinent.addEventListener('change', (e) => {
+                populateCountriesByContinent(e.target.value, 'regCountry', 'regCity', 'regOtherCity');
+            });
             regCountry.addEventListener('change', (e) => {
-                const country = e.target.value;
-                const cityInput = document.getElementById('regCity');
-                const phoneCode = document.getElementById('phoneCode');
-                cityInput.value = '';
-                if (comboboxInstances.regCity) comboboxInstances.regCity.updateOptions([]);
-                phoneCode.value = '';
-                if (!country) {
-                    cityInput.disabled = true;
-                    cityInput.placeholder = "Select country first...";
-                    return;
+                const continent = regContinent.value;
+                populateCitiesByCountry(continent, e.target.value, 'regCity', 'regOtherCity');
+            });
+            regCity.addEventListener('change', (e) => {
+                if (e.target.value === '__other__') {
+                    regOtherCity.style.display = 'block';
+                    regOtherCity.focus();
+                } else {
+                    regOtherCity.style.display = 'none';
+                    regOtherCity.value = '';
                 }
-                cityInput.disabled = false;
-                cityInput.placeholder = "Type or select city...";
-                // Set phone code from a simple map (you can expand this)
-                const phoneMap = { "Iran": "+98", "United States": "+1", "United Kingdom": "+44", "France": "+33", "Germany": "+49", "Belgium": "+32", "Canada": "+1", "Australia": "+61", "Japan": "+81", "China": "+86", "India": "+91", "Brazil": "+55", "Russia": "+7", "Turkey": "+90", "Indonesia": "+62", "Nigeria": "+234", "South Africa": "+27", "Spain": "+34", "Italy": "+39", "Netherlands": "+31", "Sweden": "+46", "Norway": "+47", "Denmark": "+45", "Finland": "+358", "Poland": "+48", "Ukraine": "+380", "Saudi Arabia": "+966", "United Arab Emirates": "+971", "Egypt": "+20", "Morocco": "+212", "Kenya": "+254", "Ethiopia": "+251", "Argentina": "+54", "Mexico": "+52", "Colombia": "+57", "Chile": "+56", "Peru": "+51", "Malaysia": "+60", "Singapore": "+65", "Thailand": "+66", "Vietnam": "+84", "Philippines": "+63", "South Korea": "+82", "Pakistan": "+92", "Bangladesh": "+880", "Iraq": "+964", "Afghanistan": "+93", "Syria": "+963", "Jordan": "+962", "Lebanon": "+961", "Israel": "+972", "Greece": "+30", "Portugal": "+351", "Austria": "+43", "Switzerland": "+41", "Ireland": "+353", "New Zealand": "+64" };
-                if (phoneMap[country]) phoneCode.value = phoneMap[country];
-                const cities = (window.citiesLight && window.citiesLight[country]) ? window.citiesLight[country] : [];
-                if (comboboxInstances.regCity) comboboxInstances.regCity.updateOptions(cities);
             });
         }
 
-        // --- 3. Virtual Scrolling Combobox ---
-        const comboboxInstances = {};
-
-        function setupCityComboboxes() {
-            const regCityInput = document.getElementById('regCity');
-            const regCityList = document.getElementById('regCityList');
-            if (regCityInput && regCityList) {
-                comboboxInstances.regCity = createVirtualCombobox({
-                    input: regCityInput,
-                    list: regCityList,
-                    getOptions: () => [] // options are set via updateOptions
-                });
-            }
-
-            const filterCityInput = document.getElementById('filterCity');
-            const filterCityList = document.getElementById('filterCityList');
-            if (filterCityInput && filterCityList) {
-                comboboxInstances.filterCity = createVirtualCombobox({
-                    input: filterCityInput,
-                    list: filterCityList,
-                    getOptions: () => []
-                });
-            }
-        }
-
-        function createVirtualCombobox({ input, list, getOptions }) {
-            let allOptions = [];
-            let filteredOptions = [];
-            let activeIndex = -1;
-            const ITEM_HEIGHT = 40; // approximate height per option
-            const VISIBLE_COUNT = 6; // number of items to render at once
-
-            function closeList() {
-                list.classList.remove('show');
-                list.innerHTML = '';
-                activeIndex = -1;
-            }
-
-            function renderWindow(scrollTop) {
-                const start = Math.floor(scrollTop / ITEM_HEIGHT);
-                const end = Math.min(start + VISIBLE_COUNT, filteredOptions.length);
-                
-                let html = '';
-                // Add a spacer for virtual scrolling
-                if (start > 0) {
-                    html += `<div style="height: ${start * ITEM_HEIGHT}px;"></div>`;
-                }
-                for (let i = start; i < end; i++) {
-                    const opt = filteredOptions[i];
-                    const isActive = (i === activeIndex) ? 'active' : '';
-                    html += `<div class="combobox-option ${isActive}" data-index="${i}">${opt}</div>`;
-                }
-                if (end < filteredOptions.length) {
-                    html += `<div style="height: ${(filteredOptions.length - end) * ITEM_HEIGHT}px;"></div>`;
-                }
-                list.innerHTML = html;
-            }
-
-            function renderList(query) {
-                const q = (query || '').toLowerCase().trim();
-                filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(q));
-                activeIndex = -1;
-                
-                if (filteredOptions.length === 0) {
-                    list.innerHTML = '<div class="combobox-empty">No results</div>';
-                    list.classList.add('show');
-                    return;
-                }
-                
-                list.scrollTop = 0;
-                renderWindow(0);
-                list.classList.add('show');
-            }
-
-            function setActive(idx) {
-                activeIndex = idx;
-                const scrollTop = list.scrollTop;
-                const start = Math.floor(scrollTop / ITEM_HEIGHT);
-                const end = start + VISIBLE_COUNT;
-                if (idx < start || idx >= end) {
-                    // Scroll to bring active item into view
-                    list.scrollTop = idx * ITEM_HEIGHT;
-                }
-                // Re-render active state
-                const options = list.querySelectorAll('.combobox-option');
-                options.forEach(o => {
-                    const i = parseInt(o.dataset.index);
-                    o.classList.toggle('active', i === idx);
-                });
-            }
-
-            input.addEventListener('focus', () => {
-                if (allOptions.length > 0) {
-                    renderList(input.value);
-                }
-            });
-
-            input.addEventListener('input', () => {
-                renderList(input.value);
-            });
-
-            input.addEventListener('keydown', (e) => {
-                if (!list.classList.contains('show')) return;
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (filteredOptions.length === 0) return;
-                    const next = activeIndex + 1 >= filteredOptions.length ? 0 : activeIndex + 1;
-                    setActive(next);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (filteredOptions.length === 0) return;
-                    const prev = activeIndex - 1 < 0 ? filteredOptions.length - 1 : activeIndex - 1;
-                    setActive(prev);
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
-                        input.value = filteredOptions[activeIndex];
-                        closeList();
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                } else if (e.key === 'Escape') {
-                    closeList();
-                }
-            });
-
-            // Handle click on options (delegation)
-            list.addEventListener('click', (e) => {
-                const option = e.target.closest('.combobox-option');
-                if (option) {
-                    const idx = parseInt(option.dataset.index);
-                    if (!isNaN(idx) && idx < filteredOptions.length) {
-                        input.value = filteredOptions[idx];
-                        closeList();
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-            });
-
-            // Handle scroll for virtual scrolling
-            let scrollTimeout;
-            list.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    if (list.classList.contains('show')) {
-                        renderWindow(list.scrollTop);
-                    }
-                }, 50);
-            });
-
-            document.addEventListener('mousedown', (e) => {
-                if (!input.contains(e.target) && !list.contains(e.target)) {
-                    closeList();
-                }
-            });
-
-            return { 
-                reset: closeList, 
-                updateOptions: (opts) => { 
-                    allOptions = opts; 
-                    filteredOptions = opts;
-                    if (document.activeElement === input) {
-                        renderList(input.value);
-                    }
-                }
-            };
-        }
-
-        // --- 4. Other UI Logic (Preserved) ---
+        // --- 4. Other Logic ---
         function populateGrid() {
             const grid = document.getElementById('homeCategoryGrid');
             const icons = { "Food & Beverage": "🍔", "Retail & Shopping": "🛍️", "Health & Medical": "🏥", "Professional Services": "💼", "IT & Technology": "💻", "Finance & Exchange": "💱", "Travel & Hospitality": "✈️", "Transportation": "🚕", "Real Estate": "🏠", "Education": "🎓", "Home & Personal Services": "🔧", "Sports & Fitness": "🏋️", "Entertainment & Events": "🎬", "Beauty & Wellness": "💆", "Automotive": "🚗", "Others": "📦" };
@@ -765,17 +659,14 @@
 
         function previewGallery(input) {
             const files = Array.from(input.files);
-            const maxImages = 5; // Basic plan default
+            const maxImages = 5;
             const maxSize = 2 * 1024 * 1024;
-            
             if (files.length > maxImages) { alert(`You can only upload up to ${maxImages} images.`); input.value = ''; return; }
-
             uploadedGalleryFiles = files;
             const container = document.getElementById('galleryPreviewContainer');
             const selector = document.getElementById('defaultImageSelector');
             container.innerHTML = '';
             let selectorHtml = '<option value="">Select an image...</option>';
-
             files.forEach((file) => {
                 if (file.size > maxSize) { alert(`Image "${file.name}" is too large. Maximum size is 2MB.`); input.value = ''; container.innerHTML = ''; return; }
                 const reader = new FileReader();
@@ -819,18 +710,20 @@
             switchTab('merchant', null);
         }
 
-        // --- Mock Data & Rendering ---
+        // --- 5. Mock Data & Filtering ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
         }
 
         const mockProviders = [
-            { id: 1, name: "New York Health", cat: "Health & Medical", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
-            { id: 2, name: "London IT Hub", cat: "IT & Technology", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development and dApp consulting.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
-            { id: 3, name: "Jakarta Cafe", cat: "Food & Beverage", country: "Indonesia", city: "Jakarta", rating: 4.5, reviews: 210, featured: true, desc: "Traditional Indonesian coffee and snacks.", hours: "8 AM - 10 PM (Local)", phone: "+62 21 1234 5678" },
-            { id: 4, name: "Lagos Tech", cat: "IT & Technology", country: "Nigeria", city: "Lagos", rating: 4.3, reviews: 78, featured: false, desc: "Mobile app development and consulting.", hours: "9 AM - 5 PM (Local)", phone: "+234 1 234 5678" },
-            { id: 5, name: "Berlin Bakery", cat: "Food & Beverage", country: "Germany", city: "Berlin", rating: 4.8, reviews: 156, featured: false, desc: "Fresh German breads and pastries.", hours: "7 AM - 6 PM (Local)", phone: "+49 30 123456" }
+            { id: 1, name: "New York Health", cat: "Health & Medical", subCat: "Doctors & Clinics", continent: "North America", country: "United States", city: "New York", rating: 4.9, reviews: 124, featured: true, desc: "General practice and telemedicine.", hours: "9 AM - 5 PM (Local)", phone: "+1 212 555 0199" },
+            { id: 2, name: "London IT Hub", cat: "IT & Technology", subCat: "App Development", continent: "Europe", country: "United Kingdom", city: "London", rating: 4.7, reviews: 89, featured: false, desc: "Smart contract development and dApp consulting.", hours: "10 AM - 6 PM (Local)", phone: "+44 20 7946 0958" },
+            { id: 3, name: "Jakarta Cafe", cat: "Food & Beverage", subCat: "Cafe", continent: "Asia", country: "Indonesia", city: "Jakarta", rating: 4.5, reviews: 210, featured: true, desc: "Traditional Indonesian coffee and snacks.", hours: "8 AM - 10 PM (Local)", phone: "+62 21 1234 5678" },
+            { id: 4, name: "Lagos Tech", cat: "IT & Technology", subCat: "Web Design", continent: "Africa", country: "Nigeria", city: "Lagos", rating: 4.3, reviews: 78, featured: false, desc: "Mobile app development and consulting.", hours: "9 AM - 5 PM (Local)", phone: "+234 1 234 5678" },
+            { id: 5, name: "Berlin Bakery", cat: "Food & Beverage", subCat: "Bakery", continent: "Europe", country: "Germany", city: "Berlin", rating: 4.8, reviews: 156, featured: false, desc: "Fresh German breads and pastries.", hours: "7 AM - 6 PM (Local)", phone: "+49 30 123456" },
+            { id: 6, name: "Tehran IT Solutions", cat: "IT & Technology", subCat: "IT Support", continent: "Asia", country: "Iran", city: "Tehran", rating: 4.6, reviews: 45, featured: false, desc: "Local IT support and networking.", hours: "9 AM - 6 PM (Local)", phone: "+98 21 1234 5678" },
+            { id: 7, name: "Paris Fashion", cat: "Retail & Shopping", subCat: "Fashion", continent: "Europe", country: "France", city: "Paris", rating: 4.4, reviews: 67, featured: false, desc: "High-end fashion retail.", hours: "10 AM - 8 PM (Local)", phone: "+33 1 2345 6789" }
         ];
 
         function renderProviders(containerId, providers) {
@@ -878,36 +771,46 @@
                 return;
             }
             const text = document.getElementById('serviceSearchInput').value.toLowerCase();
+            const continent = document.getElementById('filterContinent').value;
+            const country = document.getElementById('filterCountry').value;
+            const citySel = document.getElementById('filterCity');
+            let city = citySel.value;
+            if (city === '__other__') {
+                city = document.getElementById('filterOtherCity').value.trim();
+            }
             const cat = document.getElementById('filterCategory').value;
-            const city = document.getElementById('filterCity').value.toLowerCase();
-            
+            const subCat = document.getElementById('filterSubCategory').value;
+
             let filtered = mockProviders.filter(p => {
-                return p.name.toLowerCase().includes(text) &&
-                       (cat === 'All' || p.cat === cat) &&
-                       (city === '' || p.city.toLowerCase().includes(city));
+                if (text && !p.name.toLowerCase().includes(text)) return false;
+                if (continent && p.continent !== continent) return false;
+                if (country && p.country !== country) return false;
+                if (city && !p.city.toLowerCase().includes(city.toLowerCase())) return false;
+                if (cat && cat !== 'All' && p.cat !== cat) return false;
+                if (subCat && subCat !== 'All' && p.subCat !== subCat) return false;
+                return true;
             });
+
+            const sortVal = document.getElementById('filterSort').value;
+            if (sortVal === 'rating') filtered.sort((a,b) => b.rating - a.rating);
+            else if (sortVal === 'reviews') filtered.sort((a,b) => b.reviews - a.reviews);
+            else if (sortVal === 'newest') filtered.sort((a,b) => b.id - a.id);
+
             renderProviders('servicesProviderList', filtered);
         }
 
         function clearFilters() {
             document.getElementById('serviceSearchInput').value = '';
-            
-            const filterCountry = document.getElementById('filterCountry');
-            filterCountry.value = '';
-            
-            const filterCity = document.getElementById('filterCity');
-            filterCity.value = '';
-            filterCity.disabled = true;
-            filterCity.placeholder = "Select country first...";
-            if (comboboxInstances.filterCity) {
-                comboboxInstances.filterCity.reset();
-                comboboxInstances.filterCity.updateOptions([]);
-            }
-            
+            document.getElementById('filterContinent').value = '';
+            document.getElementById('filterCountry').innerHTML = '<option value="">Select Country...</option>';
+            document.getElementById('filterCountry').disabled = true;
+            document.getElementById('filterCity').innerHTML = '<option value="">Select City...</option>';
+            document.getElementById('filterCity').disabled = true;
+            document.getElementById('filterOtherCity').value = '';
+            document.getElementById('filterOtherCityWrap').style.display = 'none';
             document.getElementById('filterCategory').value = 'All';
             document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
             document.getElementById('filterSort').value = 'rating';
-            
             renderProviders('servicesProviderList', mockProviders);
         }
 
@@ -920,17 +823,15 @@
 
         function toggleLocation() {
             const isLocal = document.getElementById('homeGlobalToggle').checked;
-            if(isLocal) {
-                if(navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => alert(`Location access granted. Showing local results.`),
-                        () => { alert("Location access denied. Showing global results."); document.getElementById('homeGlobalToggle').checked = false; }
-                    );
-                }
+            if(isLocal && navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    () => alert(`Location access granted. Showing local results.`),
+                    () => { alert("Location access denied. Showing global results."); document.getElementById('homeGlobalToggle').checked = false; }
+                );
             }
         }
 
-        // --- Modal & Reviews ---
+        // --- 6. Modal & Reviews ---
         let currentRating = 0;
         let surveyData = {};
 
@@ -973,7 +874,7 @@
             closeModal();
         }
 
-        // --- Merchant Console ---
+        // --- 7. Merchant Console ---
         function updateMerchantConsole() {
             const content = document.getElementById('merchantContent');
             if(localStorage.getItem('isProvider') === 'true') {
@@ -995,7 +896,7 @@
             }
         }
 
-        // --- Admin Panel ---
+        // --- 8. Admin Panel ---
         function accessAdminPanel() {
             const uid = prompt("Enter Admin UID to access panel:");
             if(uid === "Hadi0011" || uid === "admin") { switchTab('admin', null); alert("Access Granted. Welcome Admin."); }
@@ -1027,7 +928,7 @@
             document.getElementById('chatReplyBox').style.display = 'none';
         }
 
-        // --- Chatbot ---
+        // --- 9. Chatbot ---
         function toggleChat(sender) {
             const w = document.getElementById('chatbotWindow');
             const headerTitle = document.getElementById('chatHeaderTitle');
@@ -1061,12 +962,14 @@
                 if (t.includes('reject') || t.includes('spam')) reply = "Reviews must be real, at least 10 chars, and contain no links.";
                 if (t.includes('survey')) reply = "It's 4 short questions after you review. It helps us verify fake reviews.";
                 if (t.includes('❓') || t.includes('icon')) reply = "Tap the ❓ icon next to any confusing field to see a quick explanation.";
+                if (t.includes('city') || t.includes('location')) reply = "Choose a Continent, then Country, then City. If your city is not listed, select 'Other / Add city' and type it.";
+                if (t.includes('image') || t.includes('photo') || t.includes('logo')) reply = "Logo: max 500KB. Gallery: Basic up to 5, Pro/Featured up to 10. Each max 2MB. Check Help > How It Works for details.";
                 messages.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
                 messages.scrollTop = messages.scrollHeight;
             }, 600);
         }
 
-        // --- Pi SDK Integration ---
+        // --- 10. Pi SDK Integration ---
         if (window.Pi) { Pi.init({ version: "2.0" }); }
 
         async function loginWithPi() {
@@ -1088,7 +991,7 @@
 
         function onIncompletePaymentFound(payment) { console.log("Incomplete payment found", payment); }
 
-        // Expose functions to global scope for inline onclick handlers
+        // --- 11. Global scope exposure for inline handlers ---
         window.switchTab = switchTab;
         window.setTheme = setTheme;
         window.selectLanguage = selectLanguage;
