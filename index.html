@@ -806,48 +806,65 @@
             filterCat.innerHTML = filterHtml;
         }
 
-        // --- 4. Location Logic (Fully Offline & Optimized) ---
+        // --- 4. Location Logic (Fully Offline & Mobile-Optimized) ---
+        let regCityRAF = null;
+        let filterCityRAF = null;
+
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
+            const cityInput = document.getElementById('regCity');
+            const cityList = document.getElementById('regCityList');
+            const phoneInput = document.getElementById('phoneCode');
+
+            // Reset dependent fields BEFORE changing the country list
+            if (cityInput && document.activeElement === cityInput) cityInput.blur();
+            if (cityInput) cityInput.value = '';
+            if (cityList) cityList.innerHTML = '';
+            if (phoneInput) phoneInput.value = '';
+
+            // Cancel any pending city rebuild from a previous rapid change
+            if (regCityRAF) { cancelAnimationFrame(regCityRAF); regCityRAF = null; }
+
             let html = '<option value="">Select Country...</option>';
-            
-            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
+            if (typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const filtered = globalCountriesData.filter(c => c.continent === region);
                 html += filtered.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             }
             select.innerHTML = html;
-            document.getElementById('regCityList').innerHTML = '';
         }
 
         function populateFilterCountries(region) {
             const select = document.getElementById('filterCountry');
+            const cityInput = document.getElementById('filterCity');
+            const cityList = document.getElementById('filterCityList');
+
+            if (cityInput && document.activeElement === cityInput) cityInput.blur();
+            if (cityInput) cityInput.value = '';
+            if (cityList) cityList.innerHTML = '';
+
+            if (filterCityRAF) { cancelAnimationFrame(filterCityRAF); filterCityRAF = null; }
+
             let html = '<option value="All">All Countries</option>';
-            
-            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
+            if (typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === region);
                 html += filtered.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             }
             select.innerHTML = html;
-            document.getElementById('filterCityList').innerHTML = '';
         }
 
         function updatePhoneCode() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
             const phoneCodeInput = document.getElementById('phoneCode');
-            
+
             if (!selectedOption || !selectedOption.value) {
                 phoneCodeInput.value = '';
                 return;
             }
-            
-            if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
+
+            if (typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const country = globalCountriesData.find(c => c.name === selectedOption.value);
-                if (country && country.phone && country.phone !== 'undefined') {
-                    phoneCodeInput.value = country.phone;
-                } else {
-                    phoneCodeInput.value = '+'; 
-                }
+                phoneCodeInput.value = (country && country.phone && country.phone !== 'undefined') ? country.phone : '+';
             } else {
                 phoneCodeInput.value = '+';
             }
@@ -856,33 +873,70 @@
         function populateRegCities() {
             const select = document.getElementById('regCountry');
             const selectedOption = select.options[select.selectedIndex];
-            if (!selectedOption || !selectedOption.value) return;
-            
-            const countryName = selectedOption.value;
-            const country = globalCountriesData.find(c => c.name === countryName);
+            const cityInput = document.getElementById('regCity');
             const cityList = document.getElementById('regCityList');
-            
-            let html = '';
-            if(country && country.cities) {
-                html = country.cities.map(city => `<option value="${city}">`).join('');
-            }
-            cityList.innerHTML = html;
+
+            // 1) Close any open datalist popup + clear the previous value
+            if (document.activeElement === cityInput) cityInput.blur();
+            cityInput.value = '';
+
+            // 2) Clear existing options immediately
+            cityList.innerHTML = '';
+
+            // 3) Cancel any pending rebuild from a previous rapid call
+            if (regCityRAF) { cancelAnimationFrame(regCityRAF); regCityRAF = null; }
+
+            // 4) Validate selection (bail out AFTER field is already cleared)
+            if (!selectedOption || !selectedOption.value) return;
+            if (typeof globalCountriesData === 'undefined' || !globalCountriesData.length) return;
+
+            const country = globalCountriesData.find(c => c.name === selectedOption.value);
+            if (!country || !country.cities || !country.cities.length) return;
+
+            // 5) Defer rebuild by one frame so Chrome-Android fully closes the popup
+            //    BEFORE we touch the datalist. This is what prevents the freeze.
+            regCityRAF = requestAnimationFrame(function () {
+                regCityRAF = null;
+                const cities = country.cities;
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < cities.length; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = cities[i];
+                    fragment.appendChild(opt);
+                }
+                cityList.appendChild(fragment);
+            });
         }
 
         function populateFilterCities() {
             const select = document.getElementById('filterCountry');
             const selectedOption = select.options[select.selectedIndex];
-            if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return;
-            
-            const countryName = selectedOption.value;
-            const country = globalCountriesData.find(c => c.name === countryName);
+            const cityInput = document.getElementById('filterCity');
             const cityList = document.getElementById('filterCityList');
-            
-            let html = '';
-            if(country && country.cities) {
-                html = country.cities.map(city => `<option value="${city}">`).join('');
-            }
-            cityList.innerHTML = html;
+
+            if (document.activeElement === cityInput) cityInput.blur();
+            cityInput.value = '';
+            cityList.innerHTML = '';
+
+            if (filterCityRAF) { cancelAnimationFrame(filterCityRAF); filterCityRAF = null; }
+
+            if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return;
+            if (typeof globalCountriesData === 'undefined' || !globalCountriesData.length) return;
+
+            const country = globalCountriesData.find(c => c.name === selectedOption.value);
+            if (!country || !country.cities || !country.cities.length) return;
+
+            filterCityRAF = requestAnimationFrame(function () {
+                filterCityRAF = null;
+                const cities = country.cities;
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < cities.length; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = cities[i];
+                    fragment.appendChild(opt);
+                }
+                cityList.appendChild(fragment);
+            });
         }
 
         // --- 5. Custom Category Logic ---
