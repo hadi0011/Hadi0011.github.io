@@ -316,6 +316,7 @@
                         <option value="nearest">Sort by: Nearest</option>
                     </select>
                     <button class="btn-search" onclick="filterProviders('services')">Search</button>
+                    <button class="btn-adv" onclick="clearFilters()" style="border-color: var(--danger); color: var(--danger);">Clear</button>
                 </div>
             </div>
             <div id="servicesProviderList"></div>
@@ -367,22 +368,32 @@
                     </div>
                 </div>
 
+                <!-- Logo & Gallery Upload with Tooltips -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Logo / Cover Image</label>
+                        <label>Logo / Cover Image <span class="info-icon" data-tooltip="Upload 1 image. Max: 500KB. Format: JPG, PNG, WebP.">?</span></label>
                         <div class="upload-box">
                             📷 Click to upload Logo
-                            <input type="file" accept="image/*" onchange="previewImage(this, 'logoPreview')">
+                            <input type="file" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this, 'logoPreview')">
                             <img id="logoPreview" style="display:none; width: 50px; height: 50px; margin: 10px auto 0; border-radius: 5px;">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Gallery (Environment)</label>
+                        <label>Gallery (Environment) <span class="info-icon" data-tooltip="Basic: 5 images / Pro: 10 images. Max: 2MB each. Format: JPG, PNG, WebP.">?</span></label>
                         <div class="upload-box">
                             🖼️ Upload Photos
-                            <input type="file" accept="image/*" multiple>
+                            <input type="file" accept="image/jpeg, image/png, image/webp" multiple onchange="previewGallery(this)">
                         </div>
+                        <div id="galleryPreviewContainer" style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;"></div>
                     </div>
+                </div>
+
+                <!-- Default Image Selector -->
+                <div class="form-group" id="defaultImageGroup" style="display: none;">
+                    <label>Select Default Image (Cover) <span class="info-icon" data-tooltip="Choose one of your uploaded gallery images to be displayed as the cover in search results.">?</span></label>
+                    <select id="defaultImageSelector">
+                        <option value="">Select an image...</option>
+                    </select>
                 </div>
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Operations</h3>
@@ -669,7 +680,7 @@
         </div>
     </div>
         <script>
-        // --- 1. Internal Dictionary for Categories (Fixes the subcategory bug) ---
+        // --- 1. Internal Dictionary for Categories ---
         const internalCategories = {
             "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
             "Retail & Shopping": ["Electronics", "Fashion", "Groceries", "Home Goods", "Jewelry"],
@@ -689,9 +700,8 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Initialization (Fixes the language modal stuck bug) ---
+        // --- 2. Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Check if user has already selected a language
             if (!localStorage.getItem('langSelected')) {
                 document.getElementById('langModal').style.display = 'flex';
             } else {
@@ -736,23 +746,17 @@
             if(e) e.target.classList.add('active');
         }
 
-        // --- 3. Language Selection Logic (Fixes the bug) ---
         function selectLanguage(langCode) {
-            // Save selection to localStorage so it doesn't ask again
             localStorage.setItem('langSelected', 'true');
-            
-            // Set Google Translate Cookie
             if (langCode === 'en') {
                 document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             } else {
                 document.cookie = `googtrans=/en/${langCode}; path=/;`;
             }
-            
-            // Reload page to apply translation
             window.location.reload();
         }
 
-        // --- 4. Form Population ---
+        // --- 3. Form Population ---
         function populateGrid() {
             const grid = document.getElementById('homeCategoryGrid');
             const icons = { 
@@ -774,51 +778,56 @@
             const filterRegion = document.getElementById('filterRegion');
             const regions = ["North America", "South America", "Europe", "Asia", "Africa", "Oceania"];
             
-            regRegion.innerHTML = '<option value="">Select Region...</option>';
-            filterRegion.innerHTML = '<option value="All">All Regions</option>';
+            let regHtml = '<option value="">Select Region...</option>';
+            let filterHtml = '<option value="All">All Regions</option>';
             
             regions.forEach(r => {
-                regRegion.innerHTML += `<option value="${r}">${r}</option>`;
-                filterRegion.innerHTML += `<option value="${r}">${r}</option>`;
+                regHtml += `<option value="${r}">${r}</option>`;
+                filterHtml += `<option value="${r}">${r}</option>`;
             });
+            
+            regRegion.innerHTML = regHtml;
+            filterRegion.innerHTML = filterHtml;
         }
 
         function populateCategories() {
             const regCat = document.getElementById('regMainCategory');
             const filterCat = document.getElementById('filterCategory');
             
-            regCat.innerHTML = '<option value="">Select Category...</option>';
-            filterCat.innerHTML = '<option value="All">All Categories</option>';
+            let regHtml = '<option value="">Select Category...</option>';
+            let filterHtml = '<option value="All">All Categories</option>';
 
             for (let cat in internalCategories) {
-                regCat.innerHTML += `<option value="${cat}">${cat}</option>`;
-                filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+                regHtml += `<option value="${cat}">${cat}</option>`;
+                filterHtml += `<option value="${cat}">${cat}</option>`;
             }
+            
+            regCat.innerHTML = regHtml;
+            filterCat.innerHTML = filterHtml;
         }
 
-        // --- 5. Country & City Loading (Instant Offline) ---
+        // --- 4. Location Logic (Fully Offline & Optimized) ---
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
-            select.innerHTML = '<option value="">Select Country...</option>';
+            let html = '<option value="">Select Country...</option>';
             
             if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
-                globalCountriesData.filter(c => c.continent === region).forEach(c => {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                });
+                const filtered = globalCountriesData.filter(c => c.continent === region);
+                html += filtered.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             }
+            select.innerHTML = html;
             document.getElementById('regCityList').innerHTML = '';
         }
 
         function populateFilterCountries(region) {
             const select = document.getElementById('filterCountry');
-            select.innerHTML = '<option value="All">All Countries</option>';
+            let html = '<option value="All">All Countries</option>';
             
             if(typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
                 const filtered = region === 'All' ? globalCountriesData : globalCountriesData.filter(c => c.continent === region);
-                filtered.forEach(c => {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                });
+                html += filtered.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             }
+            select.innerHTML = html;
             document.getElementById('filterCityList').innerHTML = '';
         }
 
@@ -853,12 +862,11 @@
             const country = globalCountriesData.find(c => c.name === countryName);
             const cityList = document.getElementById('regCityList');
             
-            cityList.innerHTML = '';
+            let html = '';
             if(country && country.cities) {
-                country.cities.forEach(city => {
-                    cityList.innerHTML += `<option value="${city}">`;
-                });
+                html = country.cities.map(city => `<option value="${city}">`).join('');
             }
+            cityList.innerHTML = html;
         }
 
         function populateFilterCities() {
@@ -870,15 +878,14 @@
             const country = globalCountriesData.find(c => c.name === countryName);
             const cityList = document.getElementById('filterCityList');
             
-            cityList.innerHTML = '';
+            let html = '';
             if(country && country.cities) {
-                country.cities.forEach(city => {
-                    cityList.innerHTML += `<option value="${city}">`;
-                });
+                html = country.cities.map(city => `<option value="${city}">`).join('');
             }
+            cityList.innerHTML = html;
         }
 
-        // --- 6. Custom Category Logic ---
+        // --- 5. Custom Category Logic ---
         function handleCategoryChange() {
             const mainCat = document.getElementById('regMainCategory').value;
             const subCatGroup = document.getElementById('subCatGroup');
@@ -891,10 +898,11 @@
             } else if (mainCat && internalCategories[mainCat]) {
                 customCatGroup.style.display = 'none';
                 subCatGroup.style.display = 'block';
-                subCatSelect.innerHTML = '<option value="">Select...</option>';
+                let html = '<option value="">Select...</option>';
                 internalCategories[mainCat].forEach(sub => {
-                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                    html += `<option value="${sub}">${sub}</option>`;
                 });
+                subCatSelect.innerHTML = html;
             } else {
                 subCatGroup.style.display = 'none';
                 customCatGroup.style.display = 'none';
@@ -904,23 +912,80 @@
         function updateSubCategories() {
             const mainCat = document.getElementById('filterCategory').value;
             const subCatSelect = document.getElementById('filterSubCategory');
-            subCatSelect.innerHTML = '<option value="All">All Subcategories</option>';
+            let html = '<option value="All">All Subcategories</option>';
             if (mainCat !== 'All' && internalCategories[mainCat]) {
                 internalCategories[mainCat].forEach(sub => {
-                    subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                    html += `<option value="${sub}">${sub}</option>`;
                 });
             }
+            subCatSelect.innerHTML = html;
         }
 
+        // --- 6. Image Upload & Validation Logic ---
         function previewImage(input, previewId) {
-            if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file) {
+                if (file.size > 500 * 1024) {
+                    alert("Logo is too large. Maximum size is 500KB.");
+                    input.value = '';
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = document.getElementById(previewId);
                     img.src = e.target.result;
                     img.style.display = 'block';
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewGallery(input) {
+            const files = input.files;
+            const maxImages = 10; // Pro limit, adjust logic if needed
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (files.length > maxImages) {
+                alert(`You can only upload up to ${maxImages} images.`);
+                input.value = '';
+                return;
+            }
+
+            const container = document.getElementById('galleryPreviewContainer');
+            const selector = document.getElementById('defaultImageSelector');
+            container.innerHTML = '';
+            let selectorHtml = '<option value="">Select an image...</option>';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.size > maxSize) {
+                    alert(`Image "${file.name}" is too large. Maximum size is 2MB.`);
+                    input.value = '';
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                // Create preview thumbnail
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'width: 40px; height: 40px; object-fit: cover; border-radius: 5px;';
+                    container.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+
+                // Populate default image selector
+                selectorHtml += `<option value="${file.name}">${file.name}</option>`;
+            }
+
+            selector.innerHTML = selectorHtml;
+            
+            // Show the default image selector if files exist
+            if (files.length > 0) {
+                document.getElementById('defaultImageGroup').style.display = 'block';
+            } else {
+                document.getElementById('defaultImageGroup').style.display = 'none';
             }
         }
 
@@ -947,13 +1012,16 @@
                 return alert("Please select a Sub-Category.");
             }
 
+            const defaultImage = document.getElementById('defaultImageSelector').value;
+            if(!defaultImage) return alert("Please select a Default Image from your gallery.");
+
             alert("Registration Data Saved! Triggering Pi Payment...");
             localStorage.setItem('isProvider', 'true');
             updateMerchantConsole();
             switchTab('merchant', null);
         }
 
-        // --- 7. Rendering & Filtering (Diverse Mock Data) ---
+        // --- 7. Rendering & Filtering ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
@@ -1041,6 +1109,19 @@
                        (city === '' || p.city.toLowerCase().includes(city));
             });
             renderProviders('servicesProviderList', filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('serviceSearchInput').value = '';
+            document.getElementById('filterRegion').value = 'All';
+            document.getElementById('filterCountry').innerHTML = '<option value="All">All Countries</option>';
+            document.getElementById('filterCity').value = '';
+            document.getElementById('filterCityList').innerHTML = '';
+            document.getElementById('filterCategory').value = 'All';
+            document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
+            document.getElementById('filterSort').value = 'rating';
+            
+            renderProviders('servicesProviderList', mockProviders);
         }
 
         function selectCategoryAndSearch(cat) {
