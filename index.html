@@ -187,6 +187,9 @@
 
         .clear-btn { background: transparent; color: var(--danger); border: 2px solid var(--danger); padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .clear-btn:hover { background: var(--danger); color: white; }
+
+        .loader { display: inline-block; width: 15px; height: 15px; border: 2px solid var(--text-muted); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body data-theme="light">
@@ -270,33 +273,15 @@
                 <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
                     <div class="search-bar" style="flex: 1;"><input type="text" id="serviceSearchInput" placeholder="Search by name..."></div>
                     
-                    <!-- Country Select (Simple, 20 countries only) -->
-                    <select class="filter-dropdown" id="filterCountry">
-                        <option value="">All Countries</option>
-                        <option value="United States">United States</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="France">France</option>
-                        <option value="Germany">Germany</option>
-                        <option value="Iran">Iran</option>
-                        <option value="Canada">Canada</option>
-                        <option value="Australia">Australia</option>
-                        <option value="Japan">Japan</option>
-                        <option value="China">China</option>
-                        <option value="India">India</option>
-                        <option value="Brazil">Brazil</option>
-                        <option value="Russia">Russia</option>
-                        <option value="Turkey">Turkey</option>
-                        <option value="Indonesia">Indonesia</option>
-                        <option value="Nigeria">Nigeria</option>
-                        <option value="South Africa">South Africa</option>
-                        <option value="Spain">Spain</option>
-                        <option value="Italy">Italy</option>
-                        <option value="Netherlands">Netherlands</option>
-                        <option value="Saudi Arabia">Saudi Arabia</option>
+                    <select class="filter-dropdown" id="filterRegion" onchange="populateFilterCountries(this.value)">
+                        <option value="All">All Regions</option>
                     </select>
-
-                    <!-- City Input (Text only) -->
-                    <input type="text" class="filter-dropdown" id="filterCity" placeholder="Type city name...">
+                    <select class="filter-dropdown" id="filterCountry" onchange="populateFilterCities()" disabled>
+                        <option value="All">All Countries</option>
+                    </select>
+                    <select class="filter-dropdown" id="filterCity" disabled>
+                        <option value="All">All Cities</option>
+                    </select>
                     
                     <select class="filter-dropdown" id="filterCategory" onchange="updateSubCategories()"><option value="All">All Categories</option></select>
                     <select class="filter-dropdown" id="filterSubCategory"><option value="All">All Subcategories</option></select>
@@ -344,36 +329,15 @@
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Region / Continent</label><select id="regRegion" onchange="populateRegCountries(this.value)"><option value="">Select...</option></select></div>
+                    <div class="form-group"><label>Country</label><select id="regCountry" onchange="updatePhoneCode(); populateRegCities()" disabled><option value="">Select...</option></select></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Country</label>
-                        <select id="regCountry">
-                            <option value="">Select Country...</option>
-                            <option value="United States">United States</option>
-                            <option value="United Kingdom">United Kingdom</option>
-                            <option value="France">France</option>
-                            <option value="Germany">Germany</option>
-                            <option value="Iran">Iran</option>
-                            <option value="Canada">Canada</option>
-                            <option value="Australia">Australia</option>
-                            <option value="Japan">Japan</option>
-                            <option value="China">China</option>
-                            <option value="India">India</option>
-                            <option value="Brazil">Brazil</option>
-                            <option value="Russia">Russia</option>
-                            <option value="Turkey">Turkey</option>
-                            <option value="Indonesia">Indonesia</option>
-                            <option value="Nigeria">Nigeria</option>
-                            <option value="South Africa">South Africa</option>
-                            <option value="Spain">Spain</option>
-                            <option value="Italy">Italy</option>
-                            <option value="Netherlands">Netherlands</option>
-                            <option value="Saudi Arabia">Saudi Arabia</option>
-                        </select>
+                        <label>City</label>
+                        <select id="regCity" disabled><option value="">Select...</option></select>
                     </div>
-                    <div class="form-group">
-                        <label>City <span class="info-icon" data-tooltip="Type your city name directly.">?</span></label>
-                        <input type="text" id="regCity" placeholder="e.g., Tehran">
-                    </div>
+                    <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
                 </div>
                 <div class="form-group"><label>Full Address</label><input type="text" id="regAddress" placeholder="123 Main St..."></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -416,7 +380,7 @@
                 <div class="help-box"><h3>🖼️ Image Upload Rules</h3><p><strong>Logo:</strong> 1 image, max 500KB, format JPG/PNG/WebP.</p><p><strong>Gallery:</strong> Basic plan allows up to 5 images. Pro/Featured plans allow up to 10 images. Each image max 2MB, format JPG/PNG/WebP.</p><p><strong>Default Image:</strong> Choose one image from your gallery to be displayed on your provider card in search results.</p><p><strong>How to upgrade:</strong> Go to Merchant Console and choose Pro (15 Pi) or Featured (25 Pi) to increase your gallery limit to 10 images.</p></div>
             </div>
             <div class="help-tab-content" id="help-rules"><div class="help-box"><h3>📜 Review Rules</h3><p>1. Reviews must be based on real experiences.</p><p>2. No spam, offensive language, or external links.</p><p>3. No conflicts of interest (reviewing your own business).</p></div><div class="help-box"><h3>⚖️ Dispute Resolution & Admin Authority</h3><p>To ensure a fair ecosystem, if a review is reported as fake or abusive, the Admin will review the evidence (such as blockchain transaction history).</p><p><strong>The Admin acts as the final arbiter to maintain community trust. Users and Providers agree to respect and comply with the Admin's final decision to avoid endless disputes. The Admin has the right to ban users or remove providers who violate the rules.</strong></p></div></div>
-            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p><p style="margin-top: 10px;"><strong>Q: My city is not in the list. What should I do?</strong><br>A: Simply type your city name in the City field. You don't need to select from a list.</p></div></div>
+            <div class="help-tab-content" id="help-faq"><div class="help-box"><h3>❓ FAQ</h3><p><strong>Q: How do I pay 5 Pi?</strong><br>A: The app will automatically open your Pi Wallet when you click Register.</p><p style="margin-top: 10px;"><strong>Q: Why was my review rejected?</strong><br>A: It may have contained links, spam, or less than 10 characters.</p><p style="margin-top: 10px;"><strong>Q: What is the ❓ icon?</strong><br>A: Tap it next to any field to see a quick explanation.</p><p style="margin-top: 10px;"><strong>Q: My city is not in the list. What should I do?</strong><br>A: Select "Other / Add city" from the city dropdown and type your city name.</p></div></div>
             <div class="help-tab-content" id="help-contact"><div class="help-box"><h3>📞 Contact Us</h3><div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"><a href="https://t.me/MainHadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">💬 Telegram: @MainHadi0011</a><a href="https://minepi.com/Hadi0011" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">🌐 Pi Account: minepi.com/Hadi0011</a><a href="#" style="color: var(--primary); font-weight: bold; text-decoration: none;">🔥 Fireside: @Hadi0011</a></div><div style="margin-top: 30px; border-top: 1px dashed var(--border-color); padding-top: 20px;"><button class="btn" onclick="accessAdminPanel()" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px;">Admin Access</button></div></div></div>
         </div>
 
@@ -497,8 +461,169 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
+        // --- 2. Location Logic (Standard API Approach) ---
+        let globalCountries = [];
+
+        async function loadCountries() {
+            try {
+                const res = await fetch('https://cdn.jsdelivr.net/npm/countries-list@3.1.1/countries.min.json');
+                globalCountries = await res.json();
+                
+                const filterRegion = document.getElementById('filterRegion');
+                const regRegion = document.getElementById('regRegion');
+                
+                let html = '<option value="All">All Regions</option>';
+                let regHtml = '<option value="">Select Region...</option>';
+                
+                globalCountries.sort((a,b) => a.region.localeCompare(b.region));
+                let regions = [...new Set(globalCountries.map(c => c.region))].filter(r => r);
+                
+                regions.forEach(r => {
+                    html += `<option value="${r}">${r}</option>`;
+                    regHtml += `<option value="${r}">${r}</option>`;
+                });
+                
+                filterRegion.innerHTML = html;
+                regRegion.innerHTML = regHtml;
+            } catch (e) {
+                console.error("Error loading countries", e);
+            }
+        }
+
+        function populateFilterCountries(region) {
+            const select = document.getElementById('filterCountry');
+            const citySel = document.getElementById('filterCity');
+            select.innerHTML = '<option value="All">All Countries</option>';
+            citySel.innerHTML = '<option value="All">All Cities</option>';
+            citySel.disabled = true;
+            
+            if (region === 'All') {
+                let html = '<option value="All">All Countries</option>';
+                globalCountries.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                    html += `<option value="${c.name}">${c.name}</option>`;
+                });
+                select.innerHTML = html;
+                select.disabled = false;
+            } else {
+                const filtered = globalCountries.filter(c => c.region === region);
+                let html = '<option value="All">All Countries</option>';
+                filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                    html += `<option value="${c.name}">${c.name}</option>`;
+                });
+                select.innerHTML = html;
+                select.disabled = false;
+            }
+        }
+
+        async function populateFilterCities() {
+            const countrySelect = document.getElementById('filterCountry');
+            const citySel = document.getElementById('filterCity');
+            const countryName = countrySelect.value;
+            
+            citySel.innerHTML = '<option value="">Loading cities...</option>';
+            citySel.disabled = true;
+            
+            if (countryName === 'All') {
+                citySel.innerHTML = '<option value="All">All Cities</option>';
+                citySel.disabled = false;
+                return;
+            }
+
+            const country = globalCountries.find(c => c.name === countryName);
+            if (!country) return;
+
+            try {
+                const res = await fetch(`https://countriesnow.space/api/v0.1/countries/cities`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: country.name })
+                });
+                const data = await res.json();
+                
+                let html = '<option value="All">All Cities</option>';
+                if (data.data && data.data.length > 0) {
+                    data.data.sort().forEach(city => {
+                        html += `<option value="${city}">${city}</option>`;
+                    });
+                }
+                citySel.innerHTML = html;
+                citySel.disabled = false;
+            } catch (e) {
+                citySel.innerHTML = '<option value="">Error loading cities</option>';
+                console.error("Error loading cities", e);
+            }
+        }
+
+        function populateRegCountries(region) {
+            const select = document.getElementById('regCountry');
+            const citySel = document.getElementById('regCity');
+            select.innerHTML = '<option value="">Select Country...</option>';
+            citySel.innerHTML = '<option value="">Select City...</option>';
+            citySel.disabled = true;
+            
+            if (!region) {
+                select.disabled = true;
+                return;
+            }
+
+            const filtered = globalCountries.filter(c => c.region === region);
+            let html = '<option value="">Select Country...</option>';
+            filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                html += `<option value="${c.name}">${c.name}</option>`;
+            });
+            select.innerHTML = html;
+            select.disabled = false;
+        }
+
+        async function populateRegCities() {
+            const countrySelect = document.getElementById('regCountry');
+            const citySel = document.getElementById('regCity');
+            const countryName = countrySelect.value;
+            
+            citySel.innerHTML = '<option value="">Loading cities...</option>';
+            citySel.disabled = true;
+            
+            if (!countryName) {
+                citySel.innerHTML = '<option value="">Select City...</option>';
+                return;
+            }
+
+            const country = globalCountries.find(c => c.name === countryName);
+            if (!country) return;
+
+            try {
+                const res = await fetch(`https://countriesnow.space/api/v0.1/countries/cities`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: country.name })
+                });
+                const data = await res.json();
+                
+                let html = '<option value="">Select City...</option>';
+                if (data.data && data.data.length > 0) {
+                    data.data.sort().forEach(city => {
+                        html += `<option value="${city}">${city}</option>`;
+                    });
+                }
+                html += '<option value="__other__">Other / Add city</option>';
+                citySel.innerHTML = html;
+                citySel.disabled = false;
+            } catch (e) {
+                citySel.innerHTML = '<option value="">Error loading cities</option>';
+                console.error("Error loading cities", e);
+            }
+        }
+
+        function updatePhoneCode() {
+            const select = document.getElementById('regCountry');
+            if (!select.value) return;
+            // Just a placeholder mapping since countries-list doesn't have phone codes directly
+            const phoneMap = { "Iran": "+98", "United States": "+1", "United Kingdom": "+44", "France": "+33", "Germany": "+49", "Canada": "+1", "Australia": "+61" };
+            if (phoneMap[select.value]) document.getElementById('phoneCode').value = phoneMap[select.value];
+        }
+
+        // --- 3. Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
             if (!localStorage.getItem('langSelected')) {
                 document.getElementById('langModal').style.display = 'flex';
                 return;
@@ -507,6 +632,7 @@
             
             populateGrid();
             populateCategories();
+            await loadCountries();
             loadMockProviders();
             updateMerchantConsole();
         });
@@ -627,7 +753,7 @@
             switchTab('merchant', null);
         }
 
-        // --- 3. Mock Data & Filtering ---
+        // --- 4. Mock Data & Filtering ---
         function generateStars(rating) {
             const percentage = (rating / 5) * 100;
             return `<div class="star-rating-display"><span class="stars-bg">★★★★★</span><span class="stars-fill" style="width: ${percentage}%;">★★★★★</span></div>`;
@@ -689,14 +815,14 @@
             }
             const text = document.getElementById('serviceSearchInput').value.toLowerCase();
             const country = document.getElementById('filterCountry').value;
-            const city = document.getElementById('filterCity').value.toLowerCase();
+            const city = document.getElementById('filterCity').value;
             const cat = document.getElementById('filterCategory').value;
             const subCat = document.getElementById('filterSubCategory').value;
 
             let filtered = mockProviders.filter(p => {
                 if (text && !p.name.toLowerCase().includes(text)) return false;
-                if (country && p.country !== country) return false;
-                if (city && !p.city.toLowerCase().includes(city)) return false;
+                if (country && country !== 'All' && p.country !== country) return false;
+                if (city && city !== 'All' && p.city !== city) return false;
                 if (cat && cat !== 'All' && p.cat !== cat) return false;
                 if (subCat && subCat !== 'All' && p.subCat !== subCat) return false;
                 return true;
@@ -712,8 +838,11 @@
 
         function clearFilters() {
             document.getElementById('serviceSearchInput').value = '';
-            document.getElementById('filterCountry').value = '';
-            document.getElementById('filterCity').value = '';
+            document.getElementById('filterRegion').value = 'All';
+            document.getElementById('filterCountry').innerHTML = '<option value="All">All Countries</option>';
+            document.getElementById('filterCountry').disabled = false;
+            document.getElementById('filterCity').innerHTML = '<option value="All">All Cities</option>';
+            document.getElementById('filterCity').disabled = true;
             document.getElementById('filterCategory').value = 'All';
             document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
             document.getElementById('filterSort').value = 'rating';
@@ -737,7 +866,7 @@
             }
         }
 
-        // --- 4. Modal & Reviews ---
+        // --- 5. Modal & Reviews ---
         let currentRating = 0;
         let surveyData = {};
 
@@ -780,7 +909,7 @@
             closeModal();
         }
 
-        // --- 5. Merchant Console ---
+        // --- 6. Merchant Console ---
         function updateMerchantConsole() {
             const content = document.getElementById('merchantContent');
             if(localStorage.getItem('isProvider') === 'true') {
@@ -802,7 +931,7 @@
             }
         }
 
-        // --- 6. Admin Panel ---
+        // --- 7. Admin Panel ---
         function accessAdminPanel() {
             const uid = prompt("Enter Admin UID to access panel:");
             if(uid === "Hadi0011" || uid === "admin") { switchTab('admin', null); alert("Access Granted. Welcome Admin."); }
@@ -834,7 +963,7 @@
             document.getElementById('chatReplyBox').style.display = 'none';
         }
 
-        // --- 7. Chatbot ---
+        // --- 8. Chatbot ---
         function toggleChat(sender) {
             const w = document.getElementById('chatbotWindow');
             const headerTitle = document.getElementById('chatHeaderTitle');
@@ -868,14 +997,14 @@
                 if (t.includes('reject') || t.includes('spam')) reply = "Reviews must be real, at least 10 chars, and contain no links.";
                 if (t.includes('survey')) reply = "It's 4 short questions after you review. It helps us verify fake reviews.";
                 if (t.includes('❓') || t.includes('icon')) reply = "Tap the ❓ icon next to any confusing field to see a quick explanation.";
-                if (t.includes('city') || t.includes('location')) reply = "Choose a Country, then simply type your City name in the text field. No need to wait for lists to load!";
+                if (t.includes('city') || t.includes('location')) reply = "Choose a Region, then Country, then City. If your city is not listed, select 'Other / Add city' and type it.";
                 if (t.includes('image') || t.includes('photo') || t.includes('logo')) reply = "Logo: max 500KB. Gallery: Basic up to 5, Pro/Featured up to 10. Each max 2MB. Check Help > How It Works for details.";
                 messages.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
                 messages.scrollTop = messages.scrollHeight;
             }, 600);
         }
 
-        // --- 8. Pi SDK Integration ---
+        // --- 9. Pi SDK Integration ---
         if (window.Pi) { Pi.init({ version: "2.0" }); }
 
         async function loginWithPi() {
@@ -897,7 +1026,7 @@
 
         function onIncompletePaymentFound(payment) { console.log("Incomplete payment found", payment); }
 
-        // --- 9. Global scope exposure for inline handlers ---
+        // --- 10. Global scope exposure for inline handlers ---
         window.switchTab = switchTab;
         window.setTheme = setTheme;
         window.selectLanguage = selectLanguage;
@@ -927,6 +1056,11 @@
         window.handleChatEnter = handleChatEnter;
         window.sendChatMessage = sendChatMessage;
         window.loginWithPi = loginWithPi;
+        window.populateFilterCountries = populateFilterCountries;
+        window.populateFilterCities = populateFilterCities;
+        window.populateRegCountries = populateRegCountries;
+        window.populateRegCities = populateRegCities;
+        window.updatePhoneCode = updatePhoneCode;
     </script>
 </body>
 </html>
