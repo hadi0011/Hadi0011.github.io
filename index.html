@@ -183,6 +183,16 @@
         .quick-replies { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
         .quick-reply { background: var(--bg-card); border: 1px solid var(--primary); color: var(--primary); padding: 6px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; font-family: inherit; }
         .quick-reply:hover { background: var(--primary); color: white; }
+
+        /* --- Combobox Styles --- */
+        .combobox-wrapper { position: relative; }
+        .combobox-input { width: 100%; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
+        .combobox-input:focus { border-color: var(--primary); }
+        .combobox-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: var(--shadow); z-index: 500; max-height: 220px; overflow-y: auto; margin-top: 4px; display: none; }
+        .combobox-list.show { display: block; }
+        .combobox-option { padding: 10px 15px; cursor: pointer; font-size: 14px; }
+        .combobox-option:hover, .combobox-option.active { background: rgba(92, 45, 145, 0.1); color: var(--primary); }
+        .combobox-empty { padding: 10px 15px; color: var(--text-muted); font-size: 13px; }
     </style>
 </head>
 <body data-theme="light">
@@ -224,7 +234,6 @@
         </nav>
 
         <div class="header-actions">
-            <!-- Google Translate Widget Container -->
             <div id="google_translate_element"></div>
 
             <div class="notification-bell" onclick="alert('No new notifications.')">
@@ -299,9 +308,11 @@
                     <select class="filter-dropdown" id="filterCountry" onchange="populateFilterCities()">
                         <option value="All">All Countries</option>
                     </select>
-                    <!-- City Filter (Input + Datalist) -->
-                    <input type="text" class="filter-dropdown" id="filterCity" list="filterCityList" placeholder="Select or type...">
-                    <datalist id="filterCityList"></datalist>
+                    <!-- City Filter: Custom Combobox replaces datalist -->
+                    <div class="combobox-wrapper" style="min-width: 120px; flex: 1;">
+                        <input type="text" class="combobox-input" id="filterCity" placeholder="Select or type city..." autocomplete="off">
+                        <div class="combobox-list" id="filterCityList"></div>
+                    </div>
                     
                     <select class="filter-dropdown" id="filterCategory" onchange="updateSubCategories()">
                         <option value="All">All Categories</option>
@@ -335,14 +346,12 @@
                         <label>Main Category</label>
                         <select id="regMainCategory" onchange="handleCategoryChange()" required><option value="">Select...</option></select>
                     </div>
-                    <!-- Subcategory Dropdown -->
                     <div class="form-group" id="subCatGroup" style="display: none;">
                         <label>Sub-Category</label>
                         <select id="regSubCategory"><option value="">Select...</option></select>
                     </div>
                 </div>
 
-                <!-- Custom Category Input (Shows only for "Others") -->
                 <div class="form-group" id="customCatGroup" style="display: none;">
                     <label>Specify Your Custom Category</label>
                     <input type="text" id="regCustomCat" placeholder="Type your service category...">
@@ -368,7 +377,6 @@
                     </div>
                 </div>
 
-                <!-- Logo & Gallery Upload with Tooltips -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label>Logo / Cover Image <span class="info-icon" data-tooltip="Upload 1 image. Max: 500KB. Format: JPG, PNG, WebP.">?</span></label>
@@ -388,7 +396,6 @@
                     </div>
                 </div>
 
-                <!-- Default Image Selector -->
                 <div class="form-group" id="defaultImageGroup" style="display: none;">
                     <label>Select Default Image (Cover) <span class="info-icon" data-tooltip="Choose one of your uploaded gallery images to be displayed as the cover in search results.">?</span></label>
                     <select id="defaultImageSelector">
@@ -444,11 +451,13 @@
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <!-- City Input + Datalist -->
+                    <!-- City Input: Custom Combobox replaces datalist -->
                     <div class="form-group">
                         <label>City <span class="info-icon" data-tooltip="Choose from the list or type your city if not listed.">?</span></label>
-                        <input type="text" id="regCity" list="regCityList" placeholder="Select or type...">
-                        <datalist id="regCityList"></datalist>
+                        <div class="combobox-wrapper">
+                            <input type="text" class="combobox-input" id="regCity" placeholder="Select or type city..." autocomplete="off">
+                            <div class="combobox-list" id="regCityList"></div>
+                        </div>
                     </div>
                     <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
                 </div>
@@ -679,7 +688,7 @@
             <button onclick="sendChatMessage()">Send</button>
         </div>
     </div>
-        <script>
+    <script>
         // --- 1. Internal Dictionary for Categories ---
         const internalCategories = {
             "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
@@ -716,6 +725,7 @@
             populateCategories();
             loadMockProviders();
             updateMerchantConsole();
+            setupCityComboboxes(); // Initialize custom comboboxes
         }
 
         function setTheme(theme) { 
@@ -806,24 +816,16 @@
             filterCat.innerHTML = filterHtml;
         }
 
-        // --- 4. Location Logic (Fully Offline & Mobile-Optimized) ---
-        let regCityRAF = null;
-        let filterCityRAF = null;
-
+        // --- 4. Location Logic (Custom Combobox for City) ---
         function populateRegCountries(region) {
             const select = document.getElementById('regCountry');
             const cityInput = document.getElementById('regCity');
             const cityList = document.getElementById('regCityList');
             const phoneInput = document.getElementById('phoneCode');
 
-            // Reset dependent fields BEFORE changing the country list
-            if (cityInput && document.activeElement === cityInput) cityInput.blur();
             if (cityInput) cityInput.value = '';
             if (cityList) cityList.innerHTML = '';
             if (phoneInput) phoneInput.value = '';
-
-            // Cancel any pending city rebuild from a previous rapid change
-            if (regCityRAF) { cancelAnimationFrame(regCityRAF); regCityRAF = null; }
 
             let html = '<option value="">Select Country...</option>';
             if (typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
@@ -838,11 +840,8 @@
             const cityInput = document.getElementById('filterCity');
             const cityList = document.getElementById('filterCityList');
 
-            if (cityInput && document.activeElement === cityInput) cityInput.blur();
             if (cityInput) cityInput.value = '';
             if (cityList) cityList.innerHTML = '';
-
-            if (filterCityRAF) { cancelAnimationFrame(filterCityRAF); filterCityRAF = null; }
 
             let html = '<option value="All">All Countries</option>';
             if (typeof globalCountriesData !== 'undefined' && globalCountriesData.length > 0) {
@@ -870,73 +869,132 @@
             }
         }
 
-        function populateRegCities() {
-            const select = document.getElementById('regCountry');
-            const selectedOption = select.options[select.selectedIndex];
-            const cityInput = document.getElementById('regCity');
-            const cityList = document.getElementById('regCityList');
+        // --- Combobox Logic ---
+        const comboboxInstances = {};
 
-            // 1) Close any open datalist popup + clear the previous value
-            if (document.activeElement === cityInput) cityInput.blur();
-            cityInput.value = '';
+        function setupCityComboboxes() {
+            // Register City Combobox
+            const regCityInput = document.getElementById('regCity');
+            const regCityList = document.getElementById('regCityList');
+            if (regCityInput && regCityList) {
+                comboboxInstances.regCity = createCombobox({
+                    input: regCityInput,
+                    list: regCityList,
+                    getOptions: () => {
+                        const countrySelect = document.getElementById('regCountry');
+                        const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+                        if (!selectedOption || !selectedOption.value) return [];
+                        const country = globalCountriesData.find(c => c.name === selectedOption.value);
+                        return (country && country.cities) ? country.cities : [];
+                    }
+                });
+            }
 
-            // 2) Clear existing options immediately
-            cityList.innerHTML = '';
-
-            // 3) Cancel any pending rebuild from a previous rapid call
-            if (regCityRAF) { cancelAnimationFrame(regCityRAF); regCityRAF = null; }
-
-            // 4) Validate selection (bail out AFTER field is already cleared)
-            if (!selectedOption || !selectedOption.value) return;
-            if (typeof globalCountriesData === 'undefined' || !globalCountriesData.length) return;
-
-            const country = globalCountriesData.find(c => c.name === selectedOption.value);
-            if (!country || !country.cities || !country.cities.length) return;
-
-            // 5) Defer rebuild by one frame so Chrome-Android fully closes the popup
-            //    BEFORE we touch the datalist. This is what prevents the freeze.
-            regCityRAF = requestAnimationFrame(function () {
-                regCityRAF = null;
-                const cities = country.cities;
-                const fragment = document.createDocumentFragment();
-                for (let i = 0; i < cities.length; i++) {
-                    const opt = document.createElement('option');
-                    opt.value = cities[i];
-                    fragment.appendChild(opt);
-                }
-                cityList.appendChild(fragment);
-            });
+            // Filter City Combobox
+            const filterCityInput = document.getElementById('filterCity');
+            const filterCityList = document.getElementById('filterCityList');
+            if (filterCityInput && filterCityList) {
+                comboboxInstances.filterCity = createCombobox({
+                    input: filterCityInput,
+                    list: filterCityList,
+                    getOptions: () => {
+                        const countrySelect = document.getElementById('filterCountry');
+                        const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+                        if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return [];
+                        const country = globalCountriesData.find(c => c.name === selectedOption.value);
+                        return (country && country.cities) ? country.cities : [];
+                    }
+                });
+            }
         }
 
-        function populateFilterCities() {
-            const select = document.getElementById('filterCountry');
-            const selectedOption = select.options[select.selectedIndex];
-            const cityInput = document.getElementById('filterCity');
-            const cityList = document.getElementById('filterCityList');
+        function createCombobox({ input, list, getOptions }) {
+            let allOptions = [];
+            let activeIndex = -1;
 
-            if (document.activeElement === cityInput) cityInput.blur();
-            cityInput.value = '';
-            cityList.innerHTML = '';
+            function closeList() {
+                list.classList.remove('show');
+                list.innerHTML = '';
+                activeIndex = -1;
+            }
 
-            if (filterCityRAF) { cancelAnimationFrame(filterCityRAF); filterCityRAF = null; }
-
-            if (!selectedOption || !selectedOption.value || selectedOption.value === 'All') return;
-            if (typeof globalCountriesData === 'undefined' || !globalCountriesData.length) return;
-
-            const country = globalCountriesData.find(c => c.name === selectedOption.value);
-            if (!country || !country.cities || !country.cities.length) return;
-
-            filterCityRAF = requestAnimationFrame(function () {
-                filterCityRAF = null;
-                const cities = country.cities;
-                const fragment = document.createDocumentFragment();
-                for (let i = 0; i < cities.length; i++) {
-                    const opt = document.createElement('option');
-                    opt.value = cities[i];
-                    fragment.appendChild(opt);
+            function renderList(query) {
+                const q = (query || '').toLowerCase().trim();
+                const filtered = allOptions.filter(opt => opt.toLowerCase().includes(q));
+                
+                list.innerHTML = '';
+                if (filtered.length === 0) {
+                    list.innerHTML = '<div class="combobox-empty">No results</div>';
+                } else {
+                    filtered.slice(0, 50).forEach((opt, idx) => {
+                        const div = document.createElement('div');
+                        div.className = 'combobox-option';
+                        div.textContent = opt;
+                        div.dataset.index = idx;
+                        div.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            input.value = opt;
+                            closeList();
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                        list.appendChild(div);
+                    });
                 }
-                cityList.appendChild(fragment);
+                list.classList.add('show');
+            }
+
+            function setActive(idx) {
+                const options = list.querySelectorAll('.combobox-option');
+                options.forEach(o => o.classList.remove('active'));
+                if (idx >= 0 && idx < options.length) {
+                    options[idx].classList.add('active');
+                    options[idx].scrollIntoView({ block: 'nearest' });
+                    activeIndex = idx;
+                } else {
+                    activeIndex = -1;
+                }
+            }
+
+            input.addEventListener('focus', () => {
+                allOptions = getOptions();
+                renderList(input.value);
             });
+
+            input.addEventListener('input', () => {
+                allOptions = getOptions();
+                renderList(input.value);
+                activeIndex = -1;
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const options = list.querySelectorAll('.combobox-option');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (options.length === 0) return;
+                    setActive(activeIndex + 1 >= options.length ? 0 : activeIndex + 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (options.length === 0) return;
+                    setActive(activeIndex - 1 < 0 ? options.length - 1 : activeIndex - 1);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && options[activeIndex]) {
+                        input.value = options[activeIndex].textContent;
+                        closeList();
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                } else if (e.key === 'Escape') {
+                    closeList();
+                }
+            });
+
+            document.addEventListener('mousedown', (e) => {
+                if (!input.contains(e.target) && !list.contains(e.target)) {
+                    closeList();
+                }
+            });
+
+            return { reset: closeList, refresh: () => { allOptions = getOptions(); } };
         }
 
         // --- 5. Custom Category Logic ---
@@ -996,8 +1054,8 @@
 
         function previewGallery(input) {
             const files = input.files;
-            const maxImages = 10; // Pro limit, adjust logic if needed
-            const maxSize = 2 * 1024 * 1024; // 2MB
+            const maxImages = 10;
+            const maxSize = 2 * 1024 * 1024;
 
             if (files.length > maxImages) {
                 alert(`You can only upload up to ${maxImages} images.`);
@@ -1019,7 +1077,6 @@
                     return;
                 }
                 
-                // Create preview thumbnail
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = document.createElement('img');
@@ -1029,13 +1086,11 @@
                 }
                 reader.readAsDataURL(file);
 
-                // Populate default image selector
                 selectorHtml += `<option value="${file.name}">${file.name}</option>`;
             }
 
             selector.innerHTML = selectorHtml;
             
-            // Show the default image selector if files exist
             if (files.length > 0) {
                 document.getElementById('defaultImageGroup').style.display = 'block';
             } else {
@@ -1170,7 +1225,8 @@
             document.getElementById('filterRegion').value = 'All';
             document.getElementById('filterCountry').innerHTML = '<option value="All">All Countries</option>';
             document.getElementById('filterCity').value = '';
-            document.getElementById('filterCityList').innerHTML = '';
+            const filterCityList = document.getElementById('filterCityList');
+            if (filterCityList) filterCityList.innerHTML = '';
             document.getElementById('filterCategory').value = 'All';
             document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
             document.getElementById('filterSort').value = 'rating';
