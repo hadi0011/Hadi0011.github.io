@@ -6,6 +6,7 @@
     <title>Hi Pi Network | Discover • Connect • Trade</title>
     
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script src="cities-light.js"></script>
     
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -182,12 +183,13 @@
         .quick-reply { background: var(--bg-card); border: 1px solid var(--primary); color: var(--primary); padding: 6px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; font-family: inherit; }
         .quick-reply:hover { background: var(--primary); color: white; }
 
-        /* --- Combobox Styles --- */
+        /* --- Virtual Scrolling Combobox --- */
         .combobox-wrapper { position: relative; }
         .combobox-input { width: 100%; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; background: var(--bg-card); color: var(--text-main); }
         .combobox-input:focus { border-color: var(--primary); }
-        .combobox-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: var(--shadow); z-index: 500; max-height: 220px; overflow-y: auto; margin-top: 4px; display: none; }
+        .combobox-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: var(--shadow); z-index: 500; max-height: 200px; overflow-y: auto; margin-top: 4px; display: none; padding: 4px 0; }
         .combobox-list.show { display: block; }
+        .combobox-spacer { height: 0; } /* used for virtual scroll */
         .combobox-option { padding: 10px 15px; cursor: pointer; font-size: 14px; }
         .combobox-option:hover, .combobox-option.active { background: rgba(92, 45, 145, 0.1); color: var(--primary); }
         .combobox-empty { padding: 10px 15px; color: var(--text-muted); font-size: 13px; }
@@ -195,6 +197,9 @@
         .gallery-preview-item { position: relative; display: inline-block; margin: 5px; }
         .gallery-preview-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); }
         .gallery-preview-item .remove-img { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; line-height: 1; }
+
+        .clear-btn { background: transparent; color: var(--danger); border: 2px solid var(--danger); padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .clear-btn:hover { background: var(--danger); color: white; }
     </style>
 </head>
 <body data-theme="light">
@@ -282,13 +287,9 @@
                     <select class="filter-dropdown" id="filterCountry">
                         <option value="">Select Country...</option>
                     </select>
-                    
-                    <select class="filter-dropdown" id="filterState" disabled>
-                        <option value="">Select State/Province...</option>
-                    </select>
 
                     <div class="combobox-wrapper" style="min-width: 120px; flex: 1;">
-                        <input type="text" class="combobox-input" id="filterCity" placeholder="Select or type city..." autocomplete="off" disabled>
+                        <input type="text" class="combobox-input" id="filterCity" placeholder="Type or select city..." autocomplete="off">
                         <div class="combobox-list" id="filterCityList"></div>
                     </div>
                     
@@ -300,7 +301,7 @@
                         <option value="newest">Sort by: Newest</option>
                     </select>
                     <button class="btn-search" onclick="filterProviders('services')">Search</button>
-                    <button class="btn-adv" onclick="clearFilters()" style="border-color: var(--danger); color: var(--danger);">Clear All</button>
+                    <button class="clear-btn" onclick="clearFilters()">✕ Clear All</button>
                 </div>
             </div>
             <div id="servicesProviderList"></div>
@@ -318,10 +319,6 @@
                 </div>
                 <div class="form-group" id="customCatGroup" style="display: none;"><label>Specify Your Custom Category</label><input type="text" id="regCustomCat" placeholder="Type your service category..."></div>
                 <div class="form-group"><label>Business Description</label><textarea id="bizDesc" rows="3" placeholder="Describe your services..."></textarea></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group"><label>Tagline</label><input type="text" id="bizTagline" placeholder="Short intro..."></div>
-                    <div class="form-group"><label>Tags / Hashtags</label><input type="text" id="bizTags" placeholder="#discount, #fast_delivery"></div>
-                </div>
 
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">2. Images</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -330,7 +327,7 @@
                         <div class="upload-box">📷 Click to upload Logo<input type="file" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this, 'logoPreview')"><img id="logoPreview" style="display:none; width: 50px; height: 50px; margin: 10px auto 0; border-radius: 5px;"></div>
                     </div>
                     <div class="form-group">
-                        <label>Gallery <span class="info-icon" data-tooltip="Basic: max 5 images. Pro/Featured: max 10 images. Max: 2MB each.">?</span></label>
+                        <label>Gallery <span class="info-icon" data-tooltip="Basic plan: max 5 images. Pro/Featured: max 10 images. Max size: 2MB each.">?</span></label>
                         <div class="upload-box">🖼️ Upload Photos<input type="file" accept="image/jpeg, image/png, image/webp" multiple onchange="previewGallery(this)"></div>
                         <div id="galleryPreviewContainer" style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;"></div>
                     </div>
@@ -343,14 +340,10 @@
                 <h3 style="color: var(--primary); margin: 25px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">3. Location & Contact</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group"><label>Country</label><select id="regCountry"><option value="">Select Country...</option></select></div>
-                    <div class="form-group"><label>State / Province</label><select id="regState" disabled><option value="">Select State...</option></select></div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>City <span class="info-icon" data-tooltip="Select state first, then choose or type your city.">?</span></label>
-                        <div class="combobox-wrapper"><input type="text" class="combobox-input" id="regCity" placeholder="Select city..." autocomplete="off" disabled><div class="combobox-list" id="regCityList"></div></div>
+                        <label>City <span class="info-icon" data-tooltip="Select a country first, then choose or type your city.">?</span></label>
+                        <div class="combobox-wrapper"><input type="text" class="combobox-input" id="regCity" placeholder="Type or select city..." autocomplete="off" disabled><div class="combobox-list" id="regCityList"></div></div>
                     </div>
-                    <div class="form-group"><label>Postal Code</label><input type="text" id="regPostalCode" placeholder="e.g., 10001"></div>
                 </div>
                 <div class="form-group"><label>Full Address</label><input type="text" id="regAddress" placeholder="123 Main St..."></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -449,19 +442,7 @@
         <div class="chatbot-input"><input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatEnter(event)"><button onclick="sendChatMessage()">Send</button></div>
     </div>
 
-    <!-- Import the Browser Package via CDN using ES Module -->
-    <script type="importmap">
-    {
-        "imports": {
-            "@countrystatecity/countries-browser": "https://cdn.jsdelivr.net/npm/@countrystatecity/countries-browser@1.0.4/dist/index.js"
-        }
-    }
-    </script>
-
-    <script type="module">
-        // Import the lazy-loading functions
-        import { getCountries, getStatesOfCountry, getCitiesOfState } from '@countrystatecity/countries-browser';
-
+    <script>
         // --- 1. Internal Dictionary for Categories ---
         const internalCategories = {
             "Food & Beverage": ["Restaurant", "Cafe", "Fast Food", "Catering", "Bakery", "Bar"],
@@ -482,184 +463,106 @@
             "Others": ["Custom Category"]
         };
 
-        // --- 2. Initialization & Location Logic (New) ---
-        let allCountries = [];
-
-        document.addEventListener('DOMContentLoaded', async () => {
+        // --- 2. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('langSelected')) {
                 document.getElementById('langModal').style.display = 'flex';
                 return;
             }
             document.getElementById('langModal').style.display = 'none';
             
-            // Initialize UI
             populateGrid();
             populateCategories();
+            populateCountrySelects();
+            setupCityComboboxes();
             loadMockProviders();
             updateMerchantConsole();
-            
-            // Load Countries from CDN
-            try {
-                allCountries = await getCountries();
-                populateCountrySelects();
-                setupCityComboboxes();
-                setupLocationListeners();
-            } catch (error) {
-                console.error("Failed to load countries:", error);
-                alert("Failed to load country data. Please check your internet connection.");
-            }
         });
 
         function populateCountrySelects() {
             const filterCountry = document.getElementById('filterCountry');
             const regCountry = document.getElementById('regCountry');
             
+            const countries = Object.keys(window.citiesLight || {}).sort();
             let optionsHtml = '<option value="">Select Country...</option>';
-            allCountries.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
-                optionsHtml += `<option value="${c.iso2}">${c.name} ${c.emoji || ''}</option>`;
+            countries.forEach(c => {
+                optionsHtml += `<option value="${c}">${c}</option>`;
             });
             
             filterCountry.innerHTML = optionsHtml;
             regCountry.innerHTML = optionsHtml;
-        }
 
-        function setupLocationListeners() {
-            // For Advanced Search
-            const filterCountry = document.getElementById('filterCountry');
-            const filterState = document.getElementById('filterState');
-            const filterCity = document.getElementById('filterCity');
-            
-            filterCountry.addEventListener('change', async (e) => {
-                const countryCode = e.target.value;
-                filterState.innerHTML = '<option value="">Select State...</option>';
-                filterState.disabled = true;
-                filterCity.value = '';
-                filterCity.disabled = true;
-                if (comboboxInstances.filterCity) comboboxInstances.filterCity.reset();
-                if (!countryCode) return;
-                
-                filterState.innerHTML = '<option value="">Loading...</option>';
-                try {
-                    const states = await getStatesOfCountry(countryCode);
-                    let html = '<option value="">Select State...</option>';
-                    states.sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
-                        html += `<option value="${s.iso2}">${s.name}</option>`;
-                    });
-                    filterState.innerHTML = html;
-                    filterState.disabled = false;
-                } catch (err) {
-                    console.error(err);
-                    filterState.innerHTML = '<option value="">Error loading states</option>';
+            // Add change listeners
+            filterCountry.addEventListener('change', (e) => {
+                const country = e.target.value;
+                const cityInput = document.getElementById('filterCity');
+                const cityList = document.getElementById('filterCityList');
+                cityInput.value = '';
+                if (comboboxInstances.filterCity) comboboxInstances.filterCity.updateOptions([]);
+                if (!country) {
+                    cityInput.disabled = true;
+                    cityInput.placeholder = "Select country first...";
+                    return;
                 }
+                cityInput.disabled = false;
+                cityInput.placeholder = "Type or select city...";
+                const cities = (window.citiesLight && window.citiesLight[country]) ? window.citiesLight[country] : [];
+                if (comboboxInstances.filterCity) comboboxInstances.filterCity.updateOptions(cities);
             });
 
-            filterState.addEventListener('change', async (e) => {
-                const stateCode = e.target.value;
-                const countryCode = filterCountry.value;
-                filterCity.value = '';
-                filterCity.disabled = true;
-                if (comboboxInstances.filterCity) comboboxInstances.filterCity.reset();
-                if (!stateCode || !countryCode) return;
-                
-                filterCity.disabled = false;
-                filterCity.placeholder = "Loading cities...";
-                try {
-                    const cities = await getCitiesOfState(countryCode, stateCode);
-                    // The combobox will fetch cities on focus, but we can pre-warm it
-                    comboboxInstances.filterCity.updateOptions(cities.map(c => c.name));
-                    filterCity.placeholder = "Select or type city...";
-                } catch (err) {
-                    console.error(err);
-                    filterCity.placeholder = "Error loading cities";
-                }
-            });
-
-            // For Register
-            const regCountry = document.getElementById('regCountry');
-            const regState = document.getElementById('regState');
-            const regCity = document.getElementById('regCity');
-            const phoneCode = document.getElementById('phoneCode');
-
-            regCountry.addEventListener('change', async (e) => {
-                const countryCode = e.target.value;
-                regState.innerHTML = '<option value="">Select State...</option>';
-                regState.disabled = true;
-                regCity.value = '';
-                regCity.disabled = true;
-                if (comboboxInstances.regCity) comboboxInstances.regCity.reset();
+            regCountry.addEventListener('change', (e) => {
+                const country = e.target.value;
+                const cityInput = document.getElementById('regCity');
+                const phoneCode = document.getElementById('phoneCode');
+                cityInput.value = '';
+                if (comboboxInstances.regCity) comboboxInstances.regCity.updateOptions([]);
                 phoneCode.value = '';
-                
-                if (!countryCode) return;
-                
-                const country = allCountries.find(c => c.iso2 === countryCode);
-                if (country && country.phone) phoneCode.value = country.phone;
-                
-                regState.innerHTML = '<option value="">Loading...</option>';
-                try {
-                    const states = await getStatesOfCountry(countryCode);
-                    let html = '<option value="">Select State...</option>';
-                    states.sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
-                        html += `<option value="${s.iso2}">${s.name}</option>`;
-                    });
-                    regState.innerHTML = html;
-                    regState.disabled = false;
-                } catch (err) {
-                    console.error(err);
-                    regState.innerHTML = '<option value="">Error loading states</option>';
+                if (!country) {
+                    cityInput.disabled = true;
+                    cityInput.placeholder = "Select country first...";
+                    return;
                 }
-            });
-
-            regState.addEventListener('change', async (e) => {
-                const stateCode = e.target.value;
-                const countryCode = regCountry.value;
-                regCity.value = '';
-                regCity.disabled = true;
-                if (comboboxInstances.regCity) comboboxInstances.regCity.reset();
-                if (!stateCode || !countryCode) return;
-                
-                regCity.disabled = false;
-                regCity.placeholder = "Loading cities...";
-                try {
-                    const cities = await getCitiesOfState(countryCode, stateCode);
-                    comboboxInstances.regCity.updateOptions(cities.map(c => c.name));
-                    regCity.placeholder = "Select city...";
-                } catch (err) {
-                    console.error(err);
-                    regCity.placeholder = "Error loading cities";
-                }
+                cityInput.disabled = false;
+                cityInput.placeholder = "Type or select city...";
+                // Set phone code from a simple map (you can expand this)
+                const phoneMap = { "Iran": "+98", "United States": "+1", "United Kingdom": "+44", "France": "+33", "Germany": "+49", "Belgium": "+32", "Canada": "+1", "Australia": "+61", "Japan": "+81", "China": "+86", "India": "+91", "Brazil": "+55", "Russia": "+7", "Turkey": "+90", "Indonesia": "+62", "Nigeria": "+234", "South Africa": "+27", "Spain": "+34", "Italy": "+39", "Netherlands": "+31", "Sweden": "+46", "Norway": "+47", "Denmark": "+45", "Finland": "+358", "Poland": "+48", "Ukraine": "+380", "Saudi Arabia": "+966", "United Arab Emirates": "+971", "Egypt": "+20", "Morocco": "+212", "Kenya": "+254", "Ethiopia": "+251", "Argentina": "+54", "Mexico": "+52", "Colombia": "+57", "Chile": "+56", "Peru": "+51", "Malaysia": "+60", "Singapore": "+65", "Thailand": "+66", "Vietnam": "+84", "Philippines": "+63", "South Korea": "+82", "Pakistan": "+92", "Bangladesh": "+880", "Iraq": "+964", "Afghanistan": "+93", "Syria": "+963", "Jordan": "+962", "Lebanon": "+961", "Israel": "+972", "Greece": "+30", "Portugal": "+351", "Austria": "+43", "Switzerland": "+41", "Ireland": "+353", "New Zealand": "+64" };
+                if (phoneMap[country]) phoneCode.value = phoneMap[country];
+                const cities = (window.citiesLight && window.citiesLight[country]) ? window.citiesLight[country] : [];
+                if (comboboxInstances.regCity) comboboxInstances.regCity.updateOptions(cities);
             });
         }
 
-        // --- Combobox Logic (Modified to accept pre-loaded options) ---
+        // --- 3. Virtual Scrolling Combobox ---
         const comboboxInstances = {};
 
         function setupCityComboboxes() {
-            // Register City Combobox (options will be updated by state change)
             const regCityInput = document.getElementById('regCity');
             const regCityList = document.getElementById('regCityList');
             if (regCityInput && regCityList) {
-                comboboxInstances.regCity = createCombobox({
+                comboboxInstances.regCity = createVirtualCombobox({
                     input: regCityInput,
                     list: regCityList,
-                    getOptions: () => [] // Options are set via updateOptions
+                    getOptions: () => [] // options are set via updateOptions
                 });
             }
 
-            // Filter City Combobox
             const filterCityInput = document.getElementById('filterCity');
             const filterCityList = document.getElementById('filterCityList');
             if (filterCityInput && filterCityList) {
-                comboboxInstances.filterCity = createCombobox({
+                comboboxInstances.filterCity = createVirtualCombobox({
                     input: filterCityInput,
                     list: filterCityList,
-                    getOptions: () => [] // Options are set via updateOptions
+                    getOptions: () => []
                 });
             }
         }
 
-        function createCombobox({ input, list, getOptions }) {
+        function createVirtualCombobox({ input, list, getOptions }) {
             let allOptions = [];
+            let filteredOptions = [];
             let activeIndex = -1;
+            const ITEM_HEIGHT = 40; // approximate height per option
+            const VISIBLE_COUNT = 6; // number of items to render at once
 
             function closeList() {
                 list.classList.remove('show');
@@ -667,71 +570,115 @@
                 activeIndex = -1;
             }
 
+            function renderWindow(scrollTop) {
+                const start = Math.floor(scrollTop / ITEM_HEIGHT);
+                const end = Math.min(start + VISIBLE_COUNT, filteredOptions.length);
+                
+                let html = '';
+                // Add a spacer for virtual scrolling
+                if (start > 0) {
+                    html += `<div style="height: ${start * ITEM_HEIGHT}px;"></div>`;
+                }
+                for (let i = start; i < end; i++) {
+                    const opt = filteredOptions[i];
+                    const isActive = (i === activeIndex) ? 'active' : '';
+                    html += `<div class="combobox-option ${isActive}" data-index="${i}">${opt}</div>`;
+                }
+                if (end < filteredOptions.length) {
+                    html += `<div style="height: ${(filteredOptions.length - end) * ITEM_HEIGHT}px;"></div>`;
+                }
+                list.innerHTML = html;
+            }
+
             function renderList(query) {
                 const q = (query || '').toLowerCase().trim();
-                const filtered = allOptions.filter(opt => opt.toLowerCase().includes(q));
+                filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(q));
+                activeIndex = -1;
                 
-                list.innerHTML = '';
-                if (filtered.length === 0) {
+                if (filteredOptions.length === 0) {
                     list.innerHTML = '<div class="combobox-empty">No results</div>';
-                } else {
-                    filtered.slice(0, 50).forEach((opt) => {
-                        const div = document.createElement('div');
-                        div.className = 'combobox-option';
-                        div.textContent = opt;
-                        div.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            input.value = opt;
-                            closeList();
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        });
-                        list.appendChild(div);
-                    });
+                    list.classList.add('show');
+                    return;
                 }
+                
+                list.scrollTop = 0;
+                renderWindow(0);
                 list.classList.add('show');
             }
 
             function setActive(idx) {
-                const options = list.querySelectorAll('.combobox-option');
-                options.forEach(o => o.classList.remove('active'));
-                if (idx >= 0 && idx < options.length) {
-                    options[idx].classList.add('active');
-                    options[idx].scrollIntoView({ block: 'nearest' });
-                    activeIndex = idx;
-                } else {
-                    activeIndex = -1;
+                activeIndex = idx;
+                const scrollTop = list.scrollTop;
+                const start = Math.floor(scrollTop / ITEM_HEIGHT);
+                const end = start + VISIBLE_COUNT;
+                if (idx < start || idx >= end) {
+                    // Scroll to bring active item into view
+                    list.scrollTop = idx * ITEM_HEIGHT;
                 }
+                // Re-render active state
+                const options = list.querySelectorAll('.combobox-option');
+                options.forEach(o => {
+                    const i = parseInt(o.dataset.index);
+                    o.classList.toggle('active', i === idx);
+                });
             }
 
             input.addEventListener('focus', () => {
-                if (allOptions.length > 0) renderList(input.value);
+                if (allOptions.length > 0) {
+                    renderList(input.value);
+                }
             });
 
             input.addEventListener('input', () => {
-                if (allOptions.length > 0) renderList(input.value);
-                activeIndex = -1;
+                renderList(input.value);
             });
 
             input.addEventListener('keydown', (e) => {
-                const options = list.querySelectorAll('.combobox-option');
+                if (!list.classList.contains('show')) return;
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    if (options.length === 0) return;
-                    setActive(activeIndex + 1 >= options.length ? 0 : activeIndex + 1);
+                    if (filteredOptions.length === 0) return;
+                    const next = activeIndex + 1 >= filteredOptions.length ? 0 : activeIndex + 1;
+                    setActive(next);
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
-                    if (options.length === 0) return;
-                    setActive(activeIndex - 1 < 0 ? options.length - 1 : activeIndex - 1);
+                    if (filteredOptions.length === 0) return;
+                    const prev = activeIndex - 1 < 0 ? filteredOptions.length - 1 : activeIndex - 1;
+                    setActive(prev);
                 } else if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (activeIndex >= 0 && options[activeIndex]) {
-                        input.value = options[activeIndex].textContent;
+                    if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
+                        input.value = filteredOptions[activeIndex];
                         closeList();
                         input.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 } else if (e.key === 'Escape') {
                     closeList();
                 }
+            });
+
+            // Handle click on options (delegation)
+            list.addEventListener('click', (e) => {
+                const option = e.target.closest('.combobox-option');
+                if (option) {
+                    const idx = parseInt(option.dataset.index);
+                    if (!isNaN(idx) && idx < filteredOptions.length) {
+                        input.value = filteredOptions[idx];
+                        closeList();
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+
+            // Handle scroll for virtual scrolling
+            let scrollTimeout;
+            list.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    if (list.classList.contains('show')) {
+                        renderWindow(list.scrollTop);
+                    }
+                }, 50);
             });
 
             document.addEventListener('mousedown', (e) => {
@@ -742,11 +689,17 @@
 
             return { 
                 reset: closeList, 
-                updateOptions: (opts) => { allOptions = opts; if (document.activeElement === input) renderList(input.value); }
+                updateOptions: (opts) => { 
+                    allOptions = opts; 
+                    filteredOptions = opts;
+                    if (document.activeElement === input) {
+                        renderList(input.value);
+                    }
+                }
             };
         }
 
-        // --- Other Logic (Preserved) ---
+        // --- 4. Other UI Logic (Preserved) ---
         function populateGrid() {
             const grid = document.getElementById('homeCategoryGrid');
             const icons = { "Food & Beverage": "🍔", "Retail & Shopping": "🛍️", "Health & Medical": "🏥", "Professional Services": "💼", "IT & Technology": "💻", "Finance & Exchange": "💱", "Travel & Hospitality": "✈️", "Transportation": "🚕", "Real Estate": "🏠", "Education": "🎓", "Home & Personal Services": "🔧", "Sports & Fitness": "🏋️", "Entertainment & Events": "🎬", "Beauty & Wellness": "💆", "Automotive": "🚗", "Others": "📦" };
@@ -794,7 +747,7 @@
             subCatSelect.innerHTML = html;
         }
 
-        let uploadedGalleryFiles = []; // Store File objects for preview logic
+        let uploadedGalleryFiles = [];
 
         function previewImage(input, previewId) {
             const file = input.files[0];
@@ -812,7 +765,7 @@
 
         function previewGallery(input) {
             const files = Array.from(input.files);
-            const maxImages = 5; // Basic plan default. Change to 10 in Merchant Console for Pro/Featured.
+            const maxImages = 5; // Basic plan default
             const maxSize = 2 * 1024 * 1024;
             
             if (files.length > maxImages) { alert(`You can only upload up to ${maxImages} images.`); input.value = ''; return; }
@@ -926,12 +879,9 @@
             }
             const text = document.getElementById('serviceSearchInput').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
-            const countryCode = document.getElementById('filterCountry').value;
             const city = document.getElementById('filterCity').value.toLowerCase();
             
             let filtered = mockProviders.filter(p => {
-                // Note: Mock data uses country names, but filter uses ISO codes. For now, compare loosely or skip country.
-                // In a real app, you'd match by country code.
                 return p.name.toLowerCase().includes(text) &&
                        (cat === 'All' || p.cat === cat) &&
                        (city === '' || p.city.toLowerCase().includes(city));
@@ -945,14 +895,14 @@
             const filterCountry = document.getElementById('filterCountry');
             filterCountry.value = '';
             
-            const filterState = document.getElementById('filterState');
-            filterState.innerHTML = '<option value="">Select State...</option>';
-            filterState.disabled = true;
-            
             const filterCity = document.getElementById('filterCity');
             filterCity.value = '';
             filterCity.disabled = true;
-            if (comboboxInstances.filterCity) comboboxInstances.filterCity.reset();
+            filterCity.placeholder = "Select country first...";
+            if (comboboxInstances.filterCity) {
+                comboboxInstances.filterCity.reset();
+                comboboxInstances.filterCity.updateOptions([]);
+            }
             
             document.getElementById('filterCategory').value = 'All';
             document.getElementById('filterSubCategory').innerHTML = '<option value="All">All Subcategories</option>';
